@@ -9,9 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --primary: #FF6752; /* Coral/Orange color from image */
+    --primary: #FF6752; 
     --bg-main: #FFFFFF;
-    --surface: #F4F5F7; /* Light gray for product cards */
+    --surface: #F4F5F7; 
     --text-dark: #1A1A1A;
     --text-light: #7A7A7A;
     --border: #EAEAEA;
@@ -27,13 +27,16 @@
   img { max-width: 100%; display: block; }
   input, textarea, select { font-family: inherit; }
 
-  .wrap { max-width: 480px; margin: 0 auto; padding: 0 16px; position: relative; } /* Mobile optimized width */
+  .wrap { max-width: 480px; margin: 0 auto; padding: 0 16px; position: relative; } 
 
   /* ================= HEADER ================= */
   header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; background: var(--bg-main); position: sticky; top: 0; z-index: 40; }
   .menu-btn, .action-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--surface); border-radius: 10px; }
   .action-btn { background: transparent; }
-  .brand { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+  
+  .brand { display: flex; align-items: center; gap: 8px; font-size: 1.25rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+  .brand img { max-height: 36px; border-radius: 6px; }
+  
   .header-actions { display: flex; gap: 8px; align-items: center; }
   .cart-wrapper { position: relative; }
   .cart-badge { position: absolute; top: 2px; right: 2px; background: #4E8D7C; color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg-main); }
@@ -46,7 +49,7 @@
   .hero-content p { font-size: 0.85rem; margin-bottom: 16px; opacity: 0.9; }
   .hero-btn { background: var(--primary); color: white; padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.85rem; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px; }
 
-  /* ================= CATEGORIES (Circular) ================= */
+  /* ================= CATEGORIES ================= */
   .categories { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 24px; scrollbar-width: none; }
   .categories::-webkit-scrollbar { display: none; }
   .cat-item { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; cursor: pointer; }
@@ -74,11 +77,14 @@
   .nav-item svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .nav-item span { font-size: 0.7rem; font-weight: 500; }
 
-  /* ================= ADMIN ACTIONS ================= */
+  /* ================= ADMIN & FLOATING ACTIONS ================= */
   .admin-actions { display: flex; gap: 8px; margin-top: 8px; }
   .btn-admin { flex: 1; padding: 8px; font-size: 0.75rem; border-radius: 6px; background: #f0f0f0; color: #333; font-weight: 600; }
   .btn-admin.danger { color: #D32F2F; background: #FFEBEE; }
-  .admin-fab { position: fixed; right: 16px; bottom: 90px; width: 56px; height: 56px; border-radius: 50%; background: var(--text-dark); color: #fff; font-size: 24px; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 45; }
+  
+  .wa-float, .admin-fab { position: fixed; right: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 45; cursor:pointer; }
+  .wa-float { bottom: 85px; width: 50px; height: 50px; background: #25D366; color: white; text-decoration: none; }
+  .admin-fab { bottom: 145px; width: 50px; height: 50px; background: var(--text-dark); color: #fff; font-size: 24px; display: none; border: none; }
   .admin-fab.show { display: flex; }
 
   /* ================= DRAWERS & OVERLAYS ================= */
@@ -92,12 +98,12 @@
   .drawer-body { padding: 20px; overflow-y: auto; flex: 1; }
   .drawer-foot { padding: 20px; border-top: 1px solid var(--border); background: var(--bg-main); }
   
-  /* Input Fields */
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-dark); }
   .field input, .field textarea, .field select { width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: #FAFAFA; font-size: 0.95rem; }
   
-  .btn-block { width: 100%; background: var(--text-dark); color: white; padding: 14px; border-radius: var(--radius-sm); font-weight: 600; font-size: 1rem; }
+  .btn-block { width: 100%; background: var(--text-dark); color: white; padding: 14px; border-radius: var(--radius-sm); font-weight: 600; font-size: 1rem; margin-bottom:10px; }
+  .btn-outline { background: transparent; color: var(--text-dark); border: 1px solid var(--border); }
   .btn-block:disabled { opacity: 0.5; }
 
   .cart-item { display: flex; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
@@ -108,7 +114,7 @@
   .qty-controls { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
   .qty-btn { width: 28px; height: 28px; background: var(--surface); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
   
-  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #333; color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; opacity: 0; transition: all 0.3s; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #333; color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; opacity: 0; transition: all 0.3s; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1); white-space: nowrap; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
@@ -117,12 +123,17 @@
 <div class="wrap">
   <!-- HEADER -->
   <header>
-    <button class="menu-btn" id="adminLoginTrigger">
+    <button class="menu-btn" onclick="showToast('Menu button clicked!')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
     </button>
-    <div class="brand" id="siteStoreName">AURA STUDIO</div>
+    
+    <div class="brand">
+      <img id="siteLogoImg" src="" style="display:none;" alt="Logo">
+      <span id="siteStoreName">AURA STUDIO</span>
+    </div>
+    
     <div class="header-actions">
-      <button class="action-btn">
+      <button class="action-btn" onclick="document.getElementById('products').scrollIntoView();">
         <svg width="20" height="20" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="#1A1A1A" stroke-width="2" fill="none"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="#1A1A1A" stroke-width="2"/></svg>
       </button>
       <div class="cart-wrapper" id="cartOpenBtn">
@@ -137,27 +148,23 @@
   <!-- HERO BANNER -->
   <div class="hero">
     <div class="hero-content">
-      <h1>New Season<br>Stationery</h1>
+      <h1>New Season<br>Arrivals</h1>
       <p>Shop the latest curated essentials for your desk and study.</p>
       <a href="#products" class="hero-btn">Shop Now</a>
     </div>
   </div>
 
   <!-- CATEGORIES -->
-  <div class="categories" id="categoryRow">
-    <!-- Rendered via JS -->
-  </div>
+  <div class="categories" id="categoryRow"></div>
 
   <!-- PRODUCT GRID -->
   <h2 class="section-title" id="products">Trending Products</h2>
-  <div class="grid" id="productGrid">
-    <!-- Products rendered via JS -->
-  </div>
+  <div class="grid" id="productGrid"></div>
 </div>
 
 <!-- BOTTOM NAVIGATION -->
 <nav class="bottom-nav">
-  <a href="#" class="nav-item active">
+  <a href="#" class="nav-item active" onclick="window.scrollTo(0,0)">
     <svg><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     <span>Home</span>
   </a>
@@ -165,7 +172,7 @@
     <svg><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <span>Search</span>
   </a>
-  <a href="#" class="nav-item">
+  <a href="#" class="nav-item" onclick="showToast('Favorites section coming soon!')">
     <svg><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
     <span>Favorites</span>
   </a>
@@ -175,7 +182,11 @@
   </a>
 </nav>
 
-<button id="adminFabBtn" class="admin-fab">+</button>
+<!-- FLOATING WHATSAPP & ADMIN FAB -->
+<a href="#" id="floatWaBtn" class="wa-float" target="_blank" aria-label="Chat on WhatsApp">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.6.1-.2.3-.7.9-.9 1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.5-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.2-.4.1-.2 0-.3 0-.5-.1-.1-.6-1.5-.8-2-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9.6.3 1.1.4 1.5.6.6.2 1.2.2 1.6.1.5-.1 1.7-.7 1.9-1.3.2-.6.2-1.1.2-1.3-.1-.1-.3-.2-.6-.3z"/><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.6 1.4 5.1L2 22l5-1.4c1.4.8 3.1 1.2 5 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18.2c-1.6 0-3.2-.4-4.5-1.3l-.3-.2-3 .8.8-2.9-.2-.3C4 15 3.5 13.5 3.5 12c0-4.7 3.8-8.5 8.5-8.5s8.5 3.8 8.5 8.5-3.8 8.5-8.5 8.5z"/></svg>
+</a>
+<button id="adminFabBtn" class="admin-fab" title="Add Product">+</button>
 <div id="toast" class="toast">Message</div>
 <div class="overlay" id="overlay"></div>
 
@@ -197,17 +208,42 @@
   </div>
 </div>
 
-<!-- ADMIN LOGIN DRAWER -->
-<div class="drawer" id="loginDrawer">
+<!-- ACCOUNT / ADMIN LOGIN DRAWER -->
+<div class="drawer" id="accountDrawer">
   <div class="drawer-head">
-    <h2>Admin Login</h2>
+    <h2 id="accountDrawerTitle">Admin Login</h2>
     <button class="drawer-close" onclick="closeAllDrawers()">&times;</button>
   </div>
-  <div class="drawer-body">
+  <div class="drawer-body" id="loginFormSection">
     <div class="field"><label>Email</label><input type="email" id="loginEmail"></div>
     <div class="field"><label>Password</label><input type="password" id="loginPassword"></div>
     <p id="loginError" style="color:#D32F2F; display:none; font-size: 0.85rem;">ভুল তথ্য দেওয়া হয়েছে!</p>
     <button class="btn-block" id="loginSubmitBtn" style="margin-top: 16px;">Login</button>
+  </div>
+  <div class="drawer-body" id="adminMenuSection" style="display:none;">
+    <button class="btn-block" onclick="openDrawer('formDrawer')">Add New Product</button>
+    <button class="btn-block btn-outline" onclick="openDrawer('settingsDrawer')">Store Settings</button>
+    <button class="btn-block btn-outline" id="logoutBtn" style="color: #D32F2F; border-color: #D32F2F;">Logout</button>
+  </div>
+</div>
+
+<!-- STORE SETTINGS DRAWER (For Admin) -->
+<div class="drawer" id="settingsDrawer">
+  <div class="drawer-head">
+    <h2>Store Settings</h2>
+    <button class="drawer-close" onclick="closeAllDrawers()">&times;</button>
+  </div>
+  <div class="drawer-body">
+    <label style="display:block; border: 2px dashed var(--border); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px; cursor: pointer;">
+      <img id="logoPreview" style="display:none; max-height: 80px; margin: 0 auto 10px; border-radius:8px;">
+      <span style="font-size: 0.85rem; color: var(--text-light);">Tap to change Logo</span>
+      <input type="file" accept="image/*" id="logoInput" style="display:none;">
+    </label>
+    
+    <div class="field"><label>Store Name</label><input type="text" id="setStoreName"></div>
+    <div class="field"><label>WhatsApp Number</label><input type="tel" id="setWaNum" placeholder="e.g. 8801XXXXXXXXX"></div>
+    
+    <button class="btn-block" id="saveSettingsBtn" style="margin-top: 10px;">Save Settings</button>
   </div>
 </div>
 
@@ -218,7 +254,6 @@
     <button class="drawer-close" onclick="closeAllDrawers()">&times;</button>
   </div>
   <div class="drawer-body">
-    <!-- Image upload area -->
     <label style="display:block; border: 2px dashed var(--border); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px; cursor: pointer;">
       <img id="imgPreview" style="display:none; max-height: 120px; margin: 0 auto 10px;">
       <span style="font-size: 0.85rem; color: var(--text-light);">Tap to upload image</span>
@@ -247,26 +282,33 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// Global Variables
 let PRODUCTS = [];
 let isAdmin = false;
 let activeCategory = "সব";
 let cart = JSON.parse(localStorage.getItem('shuvon_cart')) || {}; 
 let editingId = null;
+
+// File Upload variables
 let pendingImageFile = null;
 let currentImageUrl = "";
+let pendingLogoFile = null;
+let currentLogoUrl = "";
+
+// Default Settings (Overridden by Firestore)
+let SITE_SETTINGS = {
+    storeName: STORE_CONFIG.storeName || "AURA STUDIO",
+    whatsappNumber: STORE_CONFIG.whatsappNumber || "8801XXXXXXXXX",
+    logoUrl: ""
+};
 
 // ================= DUMMY STATIONERY DATA =================
 const DUMMY_STATIONERY = [
   { id: 'd1', name: 'Premium Spiral Notebook', price: 250, category: 'খাতা', image: 'https://images.unsplash.com/photo-1531346878377-a541e4a11f26?q=80&w=400&auto=format&fit=crop', stock: 'In Stock' },
   { id: 'd2', name: 'Minimalist Gel Pen Set', price: 120, category: 'কলম', image: 'https://images.unsplash.com/photo-1585336261022-680e295ce3fe?q=80&w=400&auto=format&fit=crop', stock: 'In Stock' },
   { id: 'd3', name: 'Canvas Pencil Pouch', price: 180, category: 'ব্যাগ', image: 'https://images.unsplash.com/photo-1583485088034-607b3dd3308a?q=80&w=400&auto=format&fit=crop', stock: 'Limited' },
-  { id: 'd4', name: 'Wooden Desk Organizer', price: 450, category: 'অফিস', image: 'https://images.unsplash.com/photo-1592312040171-267aa90d4783?q=80&w=400&auto=format&fit=crop', stock: 'In Stock' },
-  { id: 'd5', name: 'Pastel Sticky Notes', price: 90, category: 'অফিস', image: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?q=80&w=400&auto=format&fit=crop', stock: 'In Stock' },
-  { id: 'd6', name: 'Art Sketchbook (A4)', price: 320, category: 'খাতা', image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop', stock: 'In Stock' }
+  { id: 'd4', name: 'Wooden Desk Organizer', price: 450, category: 'অফিস', image: 'https://images.unsplash.com/photo-1592312040171-267aa90d4783?q=80&w=400&auto=format&fit=crop', stock: 'In Stock' }
 ];
-
-// Initial Setup
-document.getElementById('siteStoreName').textContent = STORE_CONFIG.storeName;
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -274,25 +316,120 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// Auth Listener
+// Drawers Control
+const overlay = document.getElementById('overlay');
+function closeAllDrawers() { document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open')); overlay.classList.remove('open'); }
+function openDrawer(id) { closeAllDrawers(); document.getElementById(id).classList.add('open'); overlay.classList.add('open'); }
+overlay.addEventListener('click', closeAllDrawers);
+
+// ================= FETCH GLOBAL SETTINGS =================
+db.collection('settings').doc('store_info').onSnapshot(doc => {
+    if(doc.exists) {
+        SITE_SETTINGS = { ...SITE_SETTINGS, ...doc.data() };
+    }
+    updateSiteInfoUI();
+});
+
+function updateSiteInfoUI() {
+    document.getElementById('siteStoreName').textContent = SITE_SETTINGS.storeName;
+    document.title = SITE_SETTINGS.storeName + " | Store";
+    
+    // Set WhatsApp Floating Button Link
+    const cleanWaNum = SITE_SETTINGS.whatsappNumber.replace(/[^0-9]/g, '');
+    document.getElementById('floatWaBtn').href = `https://wa.me/${cleanWaNum}?text=Hello`;
+
+    // Logo Logic
+    const logoEl = document.getElementById('siteLogoImg');
+    if(SITE_SETTINGS.logoUrl) {
+        logoEl.src = SITE_SETTINGS.logoUrl;
+        logoEl.style.display = 'block';
+        document.getElementById('siteStoreName').style.display = 'none'; // Hide text if logo exists
+    } else {
+        logoEl.style.display = 'none';
+        document.getElementById('siteStoreName').style.display = 'block';
+    }
+}
+
+// ================= AUTH & ADMIN PANEL =================
 auth.onAuthStateChanged(user => {
   isAdmin = user && user.uid === STORE_CONFIG.adminUID; 
   document.getElementById('adminFabBtn').classList.toggle('show', isAdmin);
+  
+  if(isAdmin) {
+      document.getElementById('accountDrawerTitle').textContent = "Admin Dashboard";
+      document.getElementById('loginFormSection').style.display = 'none';
+      document.getElementById('adminMenuSection').style.display = 'block';
+      
+      // Populate settings form
+      document.getElementById('setStoreName').value = SITE_SETTINGS.storeName;
+      document.getElementById('setWaNum').value = SITE_SETTINGS.whatsappNumber;
+      if(SITE_SETTINGS.logoUrl) {
+          document.getElementById('logoPreview').src = SITE_SETTINGS.logoUrl;
+          document.getElementById('logoPreview').style.display = 'block';
+          currentLogoUrl = SITE_SETTINGS.logoUrl;
+      }
+  } else {
+      document.getElementById('accountDrawerTitle').textContent = "Admin Login";
+      document.getElementById('loginFormSection').style.display = 'block';
+      document.getElementById('adminMenuSection').style.display = 'none';
+  }
   renderProducts();
 });
 
-// Fetch Data (If empty, use dummy data)
+document.getElementById('navAccountBtn').addEventListener('click', () => openDrawer('accountDrawer'));
+
+document.getElementById('loginSubmitBtn').addEventListener('click', () => {
+  auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value)
+      .then(cred => {
+          if(cred.user.uid !== STORE_CONFIG.adminUID) { auth.signOut(); alert("Access Denied"); }
+          else { showToast("Logged in successfully"); }
+      }).catch(() => document.getElementById('loginError').style.display='block');
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    auth.signOut();
+    closeAllDrawers();
+    showToast("Logged out");
+});
+
+// ================= EDIT GLOBAL SETTINGS =================
+document.getElementById('logoInput').addEventListener('change', (e) => {
+  const file = e.target.files[0]; if(!file) return; pendingLogoFile = file;
+  const reader = new FileReader();
+  reader.onload = ev => { document.getElementById('logoPreview').src = ev.target.result; document.getElementById('logoPreview').style.display = 'block'; };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('saveSettingsBtn');
+  btn.disabled = true; btn.textContent = "Saving...";
+  try {
+    let logoUrlToSave = currentLogoUrl;
+    if(pendingLogoFile) {
+        const fd = new FormData(); fd.append('image', pendingLogoFile);
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${STORE_CONFIG.imgbbApiKey}`, { method: 'POST', body: fd });
+        const json = await res.json(); logoUrlToSave = json.data.url;
+    }
+    
+    await db.collection('settings').doc('store_info').set({
+        storeName: document.getElementById('setStoreName').value,
+        whatsappNumber: document.getElementById('setWaNum').value,
+        logoUrl: logoUrlToSave
+    }, {merge: true});
+    
+    closeAllDrawers(); showToast("Settings Updated");
+  } catch(e) { alert("Error saving settings."); }
+  btn.disabled = false; btn.textContent = "Save Settings";
+});
+
+// ================= FETCH PRODUCTS =================
 db.collection('products').orderBy('createdAt','desc').onSnapshot(snapshot => {
-  if (snapshot.empty) {
-      PRODUCTS = DUMMY_STATIONERY; // Load Dummy Data for UI preview
-  } else {
-      PRODUCTS = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
+  if (snapshot.empty) PRODUCTS = DUMMY_STATIONERY;
+  else PRODUCTS = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   renderCategories();
   renderProducts();
 });
 
-// Category Icons Mapping (Fallback generic images for categories)
 const catImages = {
   "সব": "https://images.unsplash.com/photo-1518600506278-4e8ef466b810?q=80&w=150&auto=format&fit=crop",
   "খাতা": "https://images.unsplash.com/photo-1531346878377-a541e4a11f26?q=80&w=150&auto=format&fit=crop",
@@ -336,12 +473,15 @@ function renderProducts() {
   `).join('');
 }
 
+// ================= CART SYSTEM =================
 window.addToCart = (id) => {
   cart[id] = (cart[id] || 0) + 1;
   localStorage.setItem('shuvon_cart', JSON.stringify(cart));
   updateCartUI();
   showToast("Added to Cart");
 }
+
+document.getElementById('cartOpenBtn').addEventListener('click', () => { updateCartUI(); openDrawer('cartDrawer'); });
 
 function updateCartUI() {
   const count = Object.values(cart).reduce((a,b)=>a+b, 0);
@@ -385,46 +525,55 @@ window.updateQty = (id, delta) => {
   updateCartUI();
 }
 
-// Drawers & Overlays
-const overlay = document.getElementById('overlay');
-function closeAllDrawers() { document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open')); overlay.classList.remove('open'); }
-function openDrawer(id) { closeAllDrawers(); document.getElementById(id).classList.add('open'); overlay.classList.add('open'); }
-overlay.addEventListener('click', closeAllDrawers);
-document.getElementById('cartOpenBtn').addEventListener('click', () => { updateCartUI(); openDrawer('cartDrawer'); });
-
-// Admin Login Trigger (Hamburger Menu / Account Bottom Nav)
-const handleAdminLogin = (e) => {
-    e.preventDefault();
-    if(auth.currentUser) { auth.signOut(); showToast("Logged out"); }
-    else openDrawer('loginDrawer');
-}
-document.getElementById('adminLoginTrigger').addEventListener('click', handleAdminLogin);
-document.getElementById('navAccountBtn').addEventListener('click', handleAdminLogin);
-
-// Admin Form & Actions
-document.getElementById('loginSubmitBtn').addEventListener('click', () => {
-  auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value)
-      .then(cred => {
-          if(cred.user.uid !== STORE_CONFIG.adminUID) { auth.signOut(); alert("Access Denied"); }
-          else { closeAllDrawers(); showToast("Logged in as Admin"); }
-      }).catch(() => document.getElementById('loginError').style.display='block');
+// ================= CHECKOUT (WhatsApp Fix) =================
+document.getElementById('checkoutBtn').addEventListener('click', () => {
+  const n = document.getElementById('custName').value, p = document.getElementById('custPhone').value, a = document.getElementById('custAddress').value;
+  if(!n || !p || !a) return alert("Please fill all delivery details");
+  let text = `🛍 *New Order — ${SITE_SETTINGS.storeName}*\n\n`;
+  let total = 0;
+  Object.keys(cart).forEach(id => {
+    const pr = PRODUCTS.find(x => x.id === id);
+    if(pr) { text += `▪️ ${pr.name} × ${cart[id]}\n`; total += (pr.price * cart[id]); }
+  });
+  text += `\n💰 *Total:* ${STORE_CONFIG.currency}${total}\n\n👤 *Name:* ${n}\n📞 *Phone:* ${p}\n📍 *Address:* ${a}`;
+  
+  // Strip non-numeric characters to prevent WhatsApp Link Error
+  const cleanWaNum = SITE_SETTINGS.whatsappNumber.replace(/[^0-9]/g, '');
+  window.open(`https://wa.me/${cleanWaNum}?text=${encodeURIComponent(text)}`, '_blank');
 });
 
+// ================= PRODUCT CRUD =================
 document.getElementById('adminFabBtn').addEventListener('click', () => {
     editingId = null;
     document.getElementById('pName').value = '';
     document.getElementById('pPrice').value = '';
+    document.getElementById('pCategory').value = '';
     document.getElementById('imgPreview').style.display = 'none';
     openDrawer('formDrawer');
 });
 
-// Imgbb Upload & Save (Kept same as before)
 document.getElementById('imgInput').addEventListener('change', (e) => {
   const file = e.target.files[0]; if(!file) return; pendingImageFile = file;
   const reader = new FileReader();
   reader.onload = ev => { document.getElementById('imgPreview').src = ev.target.result; document.getElementById('imgPreview').style.display = 'block'; };
   reader.readAsDataURL(file);
 });
+
+window.openProductForm = (id) => {
+  editingId = id; pendingImageFile = null;
+  const p = id ? PRODUCTS.find(x => x.id === id) : null;
+  
+  document.getElementById('formTitle').textContent = p ? 'Edit Product' : 'Add Product';
+  document.getElementById('pName').value = p ? p.name : '';
+  document.getElementById('pCategory').value = p ? p.category : '';
+  document.getElementById('pPrice').value = p ? p.price : '';
+  document.getElementById('pStock').value = p ? p.stock : 'In Stock';
+  
+  currentImageUrl = p ? p.image : '';
+  document.getElementById('imgPreview').src = currentImageUrl;
+  document.getElementById('imgPreview').style.display = currentImageUrl ? 'block' : 'none';
+  openDrawer('formDrawer');
+}
 
 document.getElementById('saveProductBtn').addEventListener('click', async () => {
   const btn = document.getElementById('saveProductBtn');
@@ -448,23 +597,9 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
   btn.disabled = false; btn.textContent = "Save Product";
 });
 
-window.deleteProduct = async (id) => { if(confirm("Delete?")) await db.collection('products').doc(id).delete(); }
+window.deleteProduct = async (id) => { if(confirm("Delete this product?")) await db.collection('products').doc(id).delete(); }
 
-// WhatsApp Checkout
-document.getElementById('checkoutBtn').addEventListener('click', () => {
-  const n = document.getElementById('custName').value, p = document.getElementById('custPhone').value, a = document.getElementById('custAddress').value;
-  if(!n || !p || !a) return alert("Please fill all delivery details");
-  let text = `🛍 *New Order — ${STORE_CONFIG.storeName}*\n\n`;
-  let total = 0;
-  Object.keys(cart).forEach(id => {
-    const pr = PRODUCTS.find(x => x.id === id);
-    if(pr) { text += `▪️ ${pr.name} × ${cart[id]}\n`; total += (pr.price * cart[id]); }
-  });
-  text += `\n💰 *Total:* ${STORE_CONFIG.currency}${total}\n\n👤 *Name:* ${n}\n📞 *Phone:* ${p}\n📍 *Address:* ${a}`;
-  window.open(`https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${encodeURIComponent(text)}`);
-});
-
-// Init
+// Init Run
 updateCartUI();
 </script>
 </body>
