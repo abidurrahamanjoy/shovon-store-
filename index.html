@@ -227,7 +227,7 @@
   </div>
 </div>
 
-<!-- STORE SETTINGS DRAWER (For Admin) -->
+<!-- STORE SETTINGS DRAWER -->
 <div class="drawer" id="settingsDrawer">
   <div class="drawer-head">
     <h2>Store Settings</h2>
@@ -295,7 +295,7 @@ let currentImageUrl = "";
 let pendingLogoFile = null;
 let currentLogoUrl = "";
 
-// Default Settings (Overridden by Firestore)
+// Default Settings
 let SITE_SETTINGS = {
     storeName: STORE_CONFIG.storeName || "AURA STUDIO",
     whatsappNumber: STORE_CONFIG.whatsappNumber || "8801XXXXXXXXX",
@@ -334,16 +334,15 @@ function updateSiteInfoUI() {
     document.getElementById('siteStoreName').textContent = SITE_SETTINGS.storeName;
     document.title = SITE_SETTINGS.storeName + " | Store";
     
-    // Set WhatsApp Floating Button Link
+    // Clean WhatsApp number and set URL
     const cleanWaNum = SITE_SETTINGS.whatsappNumber.replace(/[^0-9]/g, '');
     document.getElementById('floatWaBtn').href = `https://wa.me/${cleanWaNum}?text=Hello`;
 
-    // Logo Logic
     const logoEl = document.getElementById('siteLogoImg');
     if(SITE_SETTINGS.logoUrl) {
         logoEl.src = SITE_SETTINGS.logoUrl;
         logoEl.style.display = 'block';
-        document.getElementById('siteStoreName').style.display = 'none'; // Hide text if logo exists
+        document.getElementById('siteStoreName').style.display = 'none'; 
     } else {
         logoEl.style.display = 'none';
         document.getElementById('siteStoreName').style.display = 'block';
@@ -360,7 +359,6 @@ auth.onAuthStateChanged(user => {
       document.getElementById('loginFormSection').style.display = 'none';
       document.getElementById('adminMenuSection').style.display = 'block';
       
-      // Populate settings form
       document.getElementById('setStoreName').value = SITE_SETTINGS.storeName;
       document.getElementById('setWaNum').value = SITE_SETTINGS.whatsappNumber;
       if(SITE_SETTINGS.logoUrl) {
@@ -418,7 +416,7 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
     }, {merge: true});
     
     closeAllDrawers(); showToast("Settings Updated");
-  } catch(e) { alert("Error saving settings."); }
+  } catch(e) { alert("Error saving settings: " + e.message); }
   btn.disabled = false; btn.textContent = "Save Settings";
 });
 
@@ -525,7 +523,7 @@ window.updateQty = (id, delta) => {
   updateCartUI();
 }
 
-// ================= CHECKOUT (WhatsApp Fix) =================
+// ================= CHECKOUT =================
 document.getElementById('checkoutBtn').addEventListener('click', () => {
   const n = document.getElementById('custName').value, p = document.getElementById('custPhone').value, a = document.getElementById('custAddress').value;
   if(!n || !p || !a) return alert("Please fill all delivery details");
@@ -537,7 +535,6 @@ document.getElementById('checkoutBtn').addEventListener('click', () => {
   });
   text += `\n💰 *Total:* ${STORE_CONFIG.currency}${total}\n\n👤 *Name:* ${n}\n📞 *Phone:* ${p}\n📍 *Address:* ${a}`;
   
-  // Strip non-numeric characters to prevent WhatsApp Link Error
   const cleanWaNum = SITE_SETTINGS.whatsappNumber.replace(/[^0-9]/g, '');
   window.open(`https://wa.me/${cleanWaNum}?text=${encodeURIComponent(text)}`, '_blank');
 });
@@ -583,6 +580,7 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
   };
   if(!data.name || !data.price) return alert("Fill required fields");
   btn.disabled = true; btn.textContent = "Saving...";
+  
   try {
     if(pendingImageFile) {
         const fd = new FormData(); fd.append('image', pendingImageFile);
@@ -590,14 +588,32 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
         const json = await res.json(); data.image = json.data.url;
     } else data.image = currentImageUrl || 'https://via.placeholder.com/150';
     
-    if(editingId) await db.collection('products').doc(editingId).update(data);
-    else { data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('products').add(data); }
-    closeAllDrawers(); showToast("Saved");
-  } catch(e) { alert("Error saving"); }
+    if(editingId) {
+        // ফিক্স: ডামি প্রোডাক্ট এডিট করলে যেন এরর না আসে, তার জন্য .set({merge: true}) ব্যবহার করা হয়েছে। 
+        await db.collection('products').doc(editingId).set(data, { merge: true });
+    } else { 
+        data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
+        await db.collection('products').add(data); 
+    }
+    closeAllDrawers(); showToast("Saved Successfully!");
+  } catch(e) { 
+      console.error(e); 
+      alert("Error saving: " + e.message); // এখন এরর হলে আসল কারণটা দেখাবে
+  }
+  
   btn.disabled = false; btn.textContent = "Save Product";
 });
 
-window.deleteProduct = async (id) => { if(confirm("Delete this product?")) await db.collection('products').doc(id).delete(); }
+window.deleteProduct = async (id) => { 
+    if(confirm("Delete this product?")) {
+        try {
+            await db.collection('products').doc(id).delete();
+            showToast("Product Deleted");
+        } catch(e) {
+            alert("Error deleting: " + e.message);
+        }
+    }
+}
 
 // Init Run
 updateCartUI();
