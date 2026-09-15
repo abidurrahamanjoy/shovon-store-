@@ -3,29 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f766e">
+  <meta name="theme-color" content="#B5482C">
   <meta name="description" content="শোভন স্টোর — স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য">
   <title>শোভন স্টোর | স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য</title>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https: data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self';">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Baloo+Da+2:wght@600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --primary: #0f766e;
-      --primary-dark: #115e59;
-      --gold: #eab308;
-      --bg: #f5f7f8;
-      --card: #ffffff;
-      --text: #17202a;
-      --muted: #667085;
-      --border: #e5e7eb;
-      --danger: #dc2626;
-      --success: #15803d;
-      --shadow: 0 8px 30px rgba(15, 23, 42, .08);
-      --radius: 18px;
+      /* --- Warm, paper-and-clay palette grounded in stationery/kantha craft, not the teal SaaS default --- */
+      --ink: #241F1C;
+      --clay: #B5482C;       /* primary — terracotta clay */
+      --clay-dark: #8F381F;
+      --turmeric: #C99A3E;   /* secondary accent — mustard/turmeric */
+      --paper: #F6F1E7;      /* background — rice paper cream */
+      --card: #FFFFFF;
+      --muted: #857A68;
+      --border: #E7DFD0;
+      --danger: #B3261E;
+      --success: #2F6B3A;
+      --shadow: 0 10px 28px rgba(36, 31, 28, .08);
+      --radius: 20px;
     }
 
     * {
@@ -38,10 +39,15 @@
 
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--text);
+      background: var(--paper);
+      color: var(--ink);
       font-family: "Hind Siliguri", sans-serif;
       overflow-x: hidden;
+    }
+
+    h1, h2, h3, .display {
+      font-family: "Baloo Da 2", "Hind Siliguri", sans-serif;
+      letter-spacing: 0;
     }
 
     button,
@@ -83,7 +89,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(255,255,255,.94);
+      background: rgba(246,241,231,.92);
       backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
     }
@@ -101,15 +107,16 @@
       gap: 10px;
       min-width: 0;
       flex: 1;
+      justify-content: center;
     }
 
     .logo {
-      width: 42px;
-      height: 42px;
-      border-radius: 13px;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
       object-fit: cover;
-      background: #ecfdf5;
-      border: 1px solid #d1fae5;
+      background: #FBEEE1;
+      border: 1px solid #EFD9BC;
       flex-shrink: 0;
     }
 
@@ -119,9 +126,11 @@
 
     .brand-name {
       margin: 0;
-      font-size: 19px;
+      font-family: "Baloo Da 2", sans-serif;
+      font-size: 20px;
       line-height: 1.1;
       font-weight: 700;
+      letter-spacing: .3px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -130,112 +139,145 @@
     .brand-subtitle {
       margin: 2px 0 0;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11.5px;
     }
 
     .icon-btn {
       width: 42px;
       height: 42px;
-      border: 1px solid var(--border);
-      background: #fff;
+      border: none;
+      background: transparent;
       border-radius: 13px;
       display: inline-grid;
       place-items: center;
-      color: var(--text);
+      color: var(--ink);
       position: relative;
       flex-shrink: 0;
+      font-size: 19px;
     }
 
     .icon-btn:hover {
-      background: #f8fafc;
-    }
-
-    .icon {
-      width: 20px;
-      height: 20px;
+      background: rgba(181,72,44,.08);
     }
 
     .badge {
       position: absolute;
-      right: -4px;
-      top: -5px;
-      min-width: 19px;
-      height: 19px;
-      padding: 0 5px;
+      right: 2px;
+      top: 2px;
+      min-width: 17px;
+      height: 17px;
+      padding: 0 4px;
       border-radius: 999px;
-      background: var(--danger);
+      background: var(--clay);
       color: white;
-      font-size: 11px;
+      font-size: 10px;
       display: grid;
       place-items: center;
-      border: 2px solid white;
+      border: 2px solid var(--paper);
     }
 
     /* HERO */
     .hero {
-      margin-top: 18px;
-      border-radius: 24px;
+      margin-top: 16px;
+      border-radius: 26px;
       overflow: hidden;
-      background: linear-gradient(135deg, #115e59, #0f766e);
-      color: white;
+      background:
+        radial-gradient(120% 140% at 100% 0%, rgba(201,154,62,.55), transparent 55%),
+        linear-gradient(135deg, var(--clay-dark), var(--clay));
+      color: #FFF6EC;
       box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -30px;
+      bottom: -40px;
+      width: 190px;
+      height: 190px;
+      font-size: 160px;
+      line-height: 1;
+      opacity: .16;
+      pointer-events: none;
     }
 
     .hero-content {
-      padding: 30px 24px;
+      padding: 34px 26px 30px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.28);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      margin-bottom: 14px;
     }
 
     .hero h1 {
-      margin: 0 0 8px;
-      font-size: clamp(28px, 7vw, 48px);
-      line-height: 1.05;
+      margin: 0 0 10px;
+      font-size: clamp(30px, 7.5vw, 46px);
+      line-height: 1.08;
+      font-weight: 700;
     }
 
     .hero p {
       margin: 0;
-      max-width: 650px;
-      color: rgba(255,255,255,.88);
-      font-size: 16px;
+      max-width: 520px;
+      color: rgba(255,246,236,.86);
+      font-size: 15.5px;
+      line-height: 1.55;
     }
 
     .hero-actions {
-      margin-top: 20px;
+      margin-top: 22px;
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
     }
 
     .btn {
-      min-height: 44px;
-      padding: 9px 16px;
+      min-height: 46px;
+      padding: 10px 18px;
       border: 0;
-      border-radius: 12px;
+      border-radius: 13px;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: .2s ease;
+      transition: transform .15s ease, opacity .15s ease;
+    }
+
+    .btn:active {
+      transform: scale(.97);
     }
 
     .btn-primary {
-      background: var(--gold);
-      color: #422006;
+      background: var(--turmeric);
+      color: #3A2A05;
     }
 
     .btn-light {
-      background: white;
-      color: var(--primary-dark);
+      background: rgba(255,255,255,.14);
+      color: #FFF6EC;
+      border: 1px solid rgba(255,255,255,.4);
     }
 
     .btn-danger {
-      background: #fee2e2;
-      color: #991b1b;
+      background: #FBE7E4;
+      color: #8C221A;
     }
 
     .btn-secondary {
-      background: #eef2f4;
-      color: var(--text);
+      background: #EFE7D8;
+      color: var(--ink);
     }
 
     .btn:disabled {
@@ -243,53 +285,66 @@
       cursor: not-allowed;
     }
 
-    /* BENEFITS */
-    .benefits {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin: 16px 0 24px;
-    }
-
-    .benefit {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 15px;
+    /* CATEGORY CIRCLES (browse strip, echoes the hero's craft motifs) */
+    .cat-circles {
       display: flex;
-      gap: 10px;
-      align-items: center;
+      gap: 18px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 20px 2px 6px;
     }
 
-    .benefit-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      background: #ecfdf5;
-      color: var(--primary);
+    .cat-circles::-webkit-scrollbar {
+      display: none;
+    }
+
+    .cat-circle {
+      flex: 0 0 auto;
+      border: 0;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      width: 72px;
+    }
+
+    .cat-circle-badge {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1.5px solid var(--border);
       display: grid;
       place-items: center;
-      flex-shrink: 0;
+      font-size: 26px;
+      transition: border-color .15s ease, background .15s ease;
     }
 
-    .benefit strong {
-      display: block;
-      font-size: 14px;
+    .cat-circle.active .cat-circle-badge {
+      border-color: var(--clay);
+      background: #FBEEE1;
     }
 
-    .benefit span {
-      color: var(--muted);
+    .cat-circle span {
       font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .cat-circle.active span {
+      color: var(--ink);
+      font-weight: 600;
     }
 
     /* SECTION */
     .section {
-      margin: 28px 0;
+      margin: 30px 0;
     }
 
     .section-head {
       display: flex;
-      align-items: center;
+      align-items: baseline;
       justify-content: space-between;
       gap: 10px;
       margin-bottom: 14px;
@@ -297,7 +352,7 @@
 
     .section-title {
       margin: 0;
-      font-size: 23px;
+      font-size: 24px;
     }
 
     .section-count {
@@ -305,10 +360,10 @@
       font-size: 13px;
     }
 
-    /* CATEGORIES */
+    /* CATEGORIES (filter pills — kept as a secondary, compact refinement row) */
     .categories {
       display: flex;
-      gap: 9px;
+      gap: 8px;
       overflow-x: auto;
       scrollbar-width: none;
       padding-bottom: 4px;
@@ -321,23 +376,24 @@
     .category-btn {
       flex: 0 0 auto;
       border: 1px solid var(--border);
-      background: white;
+      background: var(--card);
       border-radius: 999px;
-      padding: 8px 15px;
-      color: #475467;
+      padding: 7px 14px;
+      color: var(--muted);
       font-weight: 500;
+      font-size: 13.5px;
     }
 
     .category-btn.active {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: white;
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #FFF6EC;
     }
 
     /* SEARCH */
     .search-wrap {
       position: relative;
-      margin-bottom: 15px;
+      margin-bottom: 14px;
     }
 
     .search-wrap input {
@@ -347,34 +403,35 @@
       border: 1px solid var(--border);
       border-radius: 14px;
       outline: none;
-      background: white;
+      background: var(--card);
     }
 
     .search-wrap input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(15,118,110,.1);
+      border-color: var(--clay);
+      box-shadow: 0 0 0 3px rgba(181,72,44,.1);
     }
 
     .search-icon {
       position: absolute;
       right: 15px;
-      top: 14px;
+      top: 13px;
       color: var(--muted);
+      font-size: 18px;
     }
 
     /* PRODUCTS */
     .products {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 15px;
+      gap: 16px;
     }
 
     .product-card {
-      background: white;
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
-      box-shadow: 0 4px 18px rgba(15,23,42,.04);
+      box-shadow: var(--shadow);
       display: flex;
       flex-direction: column;
       min-width: 0;
@@ -383,7 +440,7 @@
     .product-image-wrap {
       position: relative;
       aspect-ratio: 1 / 1;
-      background: #f8fafc;
+      background: #FBF7EF;
       overflow: hidden;
     }
 
@@ -397,58 +454,58 @@
       position: absolute;
       top: 10px;
       left: 10px;
-      padding: 4px 9px;
+      padding: 4px 10px;
       border-radius: 999px;
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 600;
-      background: #dcfce7;
-      color: #166534;
+      background: #E4F0E3;
+      color: var(--success);
     }
 
     .stock-badge.limited {
-      background: #fef3c7;
-      color: #92400e;
+      background: #FBEFD8;
+      color: #8A5A0E;
     }
 
     .stock-badge.out {
-      background: #fee2e2;
-      color: #991b1b;
+      background: #FBE7E4;
+      color: #8C221A;
     }
 
     .wishlist-btn {
       position: absolute;
       top: 9px;
       right: 9px;
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.7);
+      border: 1px solid rgba(36,31,28,.06);
       background: rgba(255,255,255,.92);
       display: grid;
       place-items: center;
-      color: #64748b;
+      color: #A79B87;
     }
 
     .wishlist-btn.active {
-      color: #dc2626;
+      color: var(--clay);
     }
 
     .product-body {
-      padding: 13px;
+      padding: 13px 13px 14px;
       display: flex;
       flex-direction: column;
       flex: 1;
     }
 
     .product-category {
-      color: var(--primary);
-      font-size: 11px;
-      font-weight: 600;
+      color: var(--turmeric);
+      font-size: 10.5px;
+      font-weight: 700;
     }
 
     .product-name {
       margin: 3px 0;
-      font-size: 16px;
+      font-size: 15.5px;
       line-height: 1.3;
       font-weight: 600;
     }
@@ -469,9 +526,9 @@
     }
 
     .price {
-      color: var(--primary-dark);
+      color: var(--clay-dark);
       font-weight: 700;
-      font-size: 18px;
+      font-size: 17px;
       white-space: nowrap;
     }
 
@@ -479,21 +536,22 @@
       border: 0;
       border-radius: 11px;
       min-height: 38px;
-      padding: 7px 12px;
-      background: var(--primary);
-      color: white;
+      padding: 7px 13px;
+      background: var(--ink);
+      color: #FFF6EC;
       font-weight: 600;
+      font-size: 13px;
     }
 
     .add-btn:disabled {
-      background: #cbd5e1;
-      color: #64748b;
+      background: #E2DACA;
+      color: #9C9282;
     }
 
     /* EMPTY */
     .empty {
-      background: white;
-      border: 1px dashed #cbd5e1;
+      background: var(--card);
+      border: 1px dashed #D9CDB4;
       border-radius: 18px;
       padding: 35px 20px;
       text-align: center;
@@ -502,7 +560,7 @@
 
     .empty strong {
       display: block;
-      color: var(--text);
+      color: var(--ink);
       font-size: 18px;
       margin-bottom: 5px;
     }
@@ -511,7 +569,7 @@
     .overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15,23,42,.48);
+      background: rgba(36,31,28,.45);
       z-index: 300;
       opacity: 0;
       pointer-events: none;
@@ -526,8 +584,8 @@
     .drawer {
       position: fixed;
       z-index: 301;
-      background: white;
-      box-shadow: -15px 0 50px rgba(15,23,42,.18);
+      background: var(--paper);
+      box-shadow: -15px 0 50px rgba(36,31,28,.16);
       transition: transform .25s ease;
       display: flex;
       flex-direction: column;
@@ -561,6 +619,7 @@
       justify-content: space-between;
       gap: 10px;
       flex-shrink: 0;
+      background: var(--card);
     }
 
     .drawer-head h2 {
@@ -585,15 +644,16 @@
       align-items: center;
       gap: 12px;
       text-align: left;
-      color: var(--text);
+      color: var(--ink);
+      font-size: 15px;
     }
 
     .menu-item:hover {
-      background: #f1f5f9;
+      background: rgba(181,72,44,.07);
     }
 
     .menu-item .icon {
-      color: var(--primary);
+      color: var(--clay);
     }
 
     /* CART */
@@ -608,6 +668,7 @@
       gap: 10px;
       align-items: center;
       border: 1px solid var(--border);
+      background: var(--card);
       border-radius: 14px;
       padding: 9px;
     }
@@ -617,7 +678,7 @@
       height: 58px;
       border-radius: 10px;
       object-fit: cover;
-      background: #f8fafc;
+      background: #FBF7EF;
     }
 
     .cart-item-name {
@@ -627,7 +688,7 @@
     }
 
     .cart-item-price {
-      color: var(--primary);
+      color: var(--clay);
       font-size: 13px;
       margin-top: 2px;
     }
@@ -643,7 +704,7 @@
       width: 28px;
       height: 28px;
       border: 1px solid var(--border);
-      background: #fff;
+      background: var(--card);
       border-radius: 8px;
     }
 
@@ -671,7 +732,7 @@
     .summary-total {
       font-size: 20px;
       font-weight: 700;
-      color: var(--primary-dark);
+      color: var(--clay-dark);
     }
 
     /* FORM */
@@ -693,7 +754,7 @@
       border-radius: 11px;
       padding: 9px 12px;
       outline: none;
-      background: white;
+      background: var(--card);
     }
 
     textarea.form-control {
@@ -702,8 +763,8 @@
     }
 
     .form-control:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(15,118,110,.08);
+      border-color: var(--clay);
+      box-shadow: 0 0 0 3px rgba(181,72,44,.08);
     }
 
     .form-actions {
@@ -728,7 +789,7 @@
       height: 58px;
       border-radius: 10px;
       object-fit: cover;
-      background: #f8fafc;
+      background: #FBF7EF;
     }
 
     .admin-actions {
@@ -741,7 +802,7 @@
       height: 34px;
       border: 1px solid var(--border);
       border-radius: 9px;
-      background: white;
+      background: var(--card);
       display: grid;
       place-items: center;
     }
@@ -765,8 +826,8 @@
 
     .toast {
       max-width: min(460px, 100%);
-      background: #17202a;
-      color: white;
+      background: var(--ink);
+      color: #FFF6EC;
       padding: 11px 15px;
       border-radius: 12px;
       box-shadow: var(--shadow);
@@ -775,11 +836,11 @@
     }
 
     .toast.success {
-      background: #166534;
+      background: var(--success);
     }
 
     .toast.error {
-      background: #991b1b;
+      background: var(--danger);
     }
 
     @keyframes toastIn {
@@ -804,8 +865,8 @@
     .spinner {
       width: 30px;
       height: 30px;
-      border: 3px solid #d1d5db;
-      border-top-color: var(--primary);
+      border: 3px solid #E7DFD0;
+      border-top-color: var(--clay);
       border-radius: 50%;
       animation: spin .8s linear infinite;
     }
@@ -819,9 +880,9 @@
     /* FOOTER */
     footer {
       margin-top: 45px;
-      background: #0f172a;
-      color: #cbd5e1;
-      padding: 28px 0 80px;
+      background: var(--ink);
+      color: #D9D0C2;
+      padding: 30px 0 80px;
     }
 
     .footer-inner {
@@ -831,9 +892,10 @@
     }
 
     .footer-title {
-      color: white;
+      color: #FFF6EC;
+      font-family: "Baloo Da 2", sans-serif;
       font-weight: 700;
-      font-size: 19px;
+      font-size: 20px;
     }
 
     .footer-small {
@@ -858,7 +920,11 @@
       }
 
       .header-inner {
-        min-height: 62px;
+        min-height: 60px;
+      }
+
+      .brand {
+        justify-content: flex-start;
       }
 
       .brand-name {
@@ -869,17 +935,9 @@
         display: none;
       }
 
-      .benefits {
-        grid-template-columns: 1fr;
-      }
-
-      .benefit {
-        padding: 11px;
-      }
-
       .products {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        gap: 11px;
       }
 
       .product-body {
@@ -891,12 +949,22 @@
       }
 
       .price {
-        font-size: 16px;
+        font-size: 15.5px;
       }
 
       .add-btn {
-        padding: 6px 9px;
+        padding: 6px 10px;
         font-size: 12px;
+      }
+
+      .cat-circle {
+        width: 66px;
+      }
+
+      .cat-circle-badge {
+        width: 56px;
+        height: 56px;
+        font-size: 23px;
       }
 
       .bottom-nav {
@@ -907,29 +975,34 @@
         right: 10px;
         bottom: max(10px, env(safe-area-inset-bottom));
         z-index: 150;
-        background: rgba(255,255,255,.96);
+        background: rgba(255,255,255,.97);
         backdrop-filter: blur(14px);
         border: 1px solid var(--border);
-        border-radius: 17px;
-        box-shadow: 0 10px 35px rgba(15,23,42,.15);
+        border-radius: 18px;
+        box-shadow: 0 12px 34px rgba(36,31,28,.14);
         padding: 6px;
       }
 
       .bottom-nav button {
-        min-height: 49px;
+        min-height: 50px;
         border: 0;
         background: transparent;
-        border-radius: 12px;
-        color: #64748b;
+        border-radius: 13px;
+        color: #9C9282;
         display: grid;
         place-items: center;
-        gap: 1px;
+        gap: 2px;
         font-size: 10px;
       }
 
+      .bottom-nav button .nav-icon {
+        font-size: 19px;
+        line-height: 1;
+      }
+
       .bottom-nav button.active {
-        color: var(--primary);
-        background: #ecfdf5;
+        color: var(--clay);
+        background: #FBEEE1;
       }
 
       footer {
@@ -947,7 +1020,7 @@
       }
 
       .hero-content {
-        padding: 25px 18px;
+        padding: 28px 18px 26px;
       }
     }
   </style>
@@ -984,45 +1057,22 @@
 
     <section class="hero">
       <div class="hero-content">
+        <span class="hero-eyebrow">নতুন স্টক এসেছে</span>
         <h1 id="heroStoreName">শোভন স্টোর</h1>
         <p>প্রয়োজনীয় স্টেশনারী ও দৈনন্দিন পণ্য সহজে দেখুন এবং WhatsApp-এর মাধ্যমে অর্ডার করুন।</p>
 
         <div class="hero-actions">
           <button class="btn btn-primary" id="shopNowBtn" type="button">
-            🛍️ পণ্য দেখুন
+            পণ্য দেখুন
           </button>
           <button class="btn btn-light" id="heroCartBtn" type="button">
-            🛒 কার্ট দেখুন
+            কার্ট দেখুন
           </button>
         </div>
       </div>
     </section>
 
-    <section class="benefits">
-      <div class="benefit">
-        <div class="benefit-icon">✓</div>
-        <div>
-          <strong>সহজ অর্ডার</strong>
-          <span>WhatsApp-এ সরাসরি অর্ডার</span>
-        </div>
-      </div>
-
-      <div class="benefit">
-        <div class="benefit-icon">৳</div>
-        <div>
-          <strong>স্বচ্ছ মূল্য</strong>
-          <span>পণ্যের দাম আগে থেকেই দেখুন</span>
-        </div>
-      </div>
-
-      <div class="benefit">
-        <div class="benefit-icon">⚡</div>
-        <div>
-          <strong>দ্রুত যোগাযোগ</strong>
-          <span>অর্ডারের পর সরাসরি যোগাযোগ</span>
-        </div>
-      </div>
-    </section>
+    <div id="catCircles" class="cat-circles" aria-hidden="true"></div>
 
     <section class="section" id="productsSection">
       <div class="section-head">
@@ -1330,10 +1380,10 @@
          top:50%;
          transform:translate(-50%,-50%);
          width:min(400px,calc(100% - 30px));
-         background:white;
+         background:var(--card);
          border-radius:18px;
          padding:22px;
-         box-shadow:0 25px 70px rgba(15,23,42,.25);
+         box-shadow:0 25px 70px rgba(36,31,28,.25);
        ">
 
     <h3 id="confirmTitle" style="margin:0 0 8px;">নিশ্চিত করুন</h3>
@@ -1348,10 +1398,10 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <nav class="bottom-nav" aria-label="প্রধান নেভিগেশন">
-    <button id="bottomHomeBtn" type="button" class="active">⌂<span>হোম</span></button>
-    <button id="bottomSearchBtn" type="button">⌕<span>খুঁজুন</span></button>
-    <button id="bottomWishlistBtn" type="button">♡<span>পছন্দ</span></button>
-    <button id="bottomAdminBtn" type="button">⚙<span>অ্যাডমিন</span></button>
+    <button id="bottomHomeBtn" type="button" class="active"><span class="nav-icon">⌂</span><span>হোম</span></button>
+    <button id="bottomSearchBtn" type="button"><span class="nav-icon">⌕</span><span>খুঁজুন</span></button>
+    <button id="bottomWishlistBtn" type="button"><span class="nav-icon">♡</span><span>পছন্দ</span></button>
+    <button id="bottomAdminBtn" type="button"><span class="nav-icon">⚙</span><span>অ্যাডমিন</span></button>
   </nav>
 
   <!-- FIREBASE -->
@@ -1399,6 +1449,21 @@
       isAdmin: false,
       editingProductId: null
     };
+
+    /* Purely decorative icon lookup for the circular category strip.
+       Falls back to a generic mark for categories the store adds later. */
+    const CATEGORY_ICONS = {
+      "সব": "✺",
+      "খাতা": "📒",
+      "কলম": "🖊️",
+      "অফিস": "🗂️",
+      "ব্যাগ": "🎒",
+      "অন্যান্য": "✦"
+    };
+
+    function iconForCategory(name) {
+      return CATEGORY_ICONS[name] || "✦";
+    }
 
 
     /* =========================================================
@@ -1673,7 +1738,7 @@
           height:100%;
           display:grid;
           place-items:center;
-          color:#94a3b8;
+          color:#C9BEA8;
           font-size:38px;
         ">🛍️</div>`;
       }
@@ -1692,7 +1757,7 @@
           width:100%;
           height:100%;
           place-items:center;
-          color:#94a3b8;
+          color:#C9BEA8;
           font-size:38px;
         ">🛍️</div>
       `;
@@ -1716,7 +1781,7 @@
       });
     }
 
-    function renderCategories() {
+    function getCategoryList() {
       const categories = new Set(["সব"]);
 
       state.products.forEach(product => {
@@ -1725,10 +1790,23 @@
         }
       });
 
-      const container = $("#categories");
-      container.replaceChildren();
+      return Array.from(categories);
+    }
 
-      Array.from(categories).forEach(category => {
+    function selectCategory(category) {
+      state.activeCategory = category;
+      renderCategories();
+      renderProducts();
+    }
+
+    function renderCategories() {
+      const categories = getCategoryList();
+
+      /* Pill filter row (compact, sits above the grid) */
+      const pillContainer = $("#categories");
+      pillContainer.replaceChildren();
+
+      categories.forEach(category => {
         const button = document.createElement("button");
 
         button.type = "button";
@@ -1737,13 +1815,33 @@
 
         button.textContent = category;
 
+        button.addEventListener("click", () => selectCategory(category));
+
+        pillContainer.appendChild(button);
+      });
+
+      /* Circular browse strip (visual anchor, echoes the hero) */
+      const circleContainer = $("#catCircles");
+      circleContainer.replaceChildren();
+
+      categories.forEach(category => {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className =
+          `cat-circle ${state.activeCategory === category ? "active" : ""}`;
+
+        button.innerHTML = `
+          <span class="cat-circle-badge">${iconForCategory(category)}</span>
+          <span>${escapeHTML(category)}</span>
+        `;
+
         button.addEventListener("click", () => {
-          state.activeCategory = category;
-          renderCategories();
-          renderProducts();
+          selectCategory(category);
+          $("#productsSection").scrollIntoView({ behavior: "smooth" });
         });
 
-        container.appendChild(button);
+        circleContainer.appendChild(button);
       });
     }
 
@@ -2424,8 +2522,8 @@
             </div>
 
             <div style="font-size:11px;color:${
-              product.stock === "সীমিত স্টক" ? "#92400e" :
-              product.stock === "স্টক নেই" ? "#991b1b" : "#166534"
+              product.stock === "সীমিত স্টক" ? "#8A5A0E" :
+              product.stock === "স্টক নেই" ? "#8C221A" : "#2F6B3A"
             };">
               ${escapeHTML(product.stock)}
             </div>
