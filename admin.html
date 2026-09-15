@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>এডমিন প্যানেল | শোভন স্টোর</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest:#163A2E;
+    --forest-light:#1F5C46;
+    --cream:#FBF7EE;
+    --card:#FFFFFF;
+    --gold:#D89B3C;
+    --gold-dark:#AD7622;
+    --ink:#221F1A;
+    --muted:#6B6156;
+    --sage:#E7EFE6;
+    --line:#E6DDC8;
+    --danger:#B3452F;
+    --radius-card:14px;
+    --shadow-card:0 1px 2px rgba(22,58,46,0.06), 0 6px 20px -8px rgba(22,58,46,0.2);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--cream); color:var(--ink);
+    font-family:'Hind Siliguri','Segoe UI',sans-serif; line-height:1.6;
+  }
+  h1,h2,h3{ font-family:'Tiro Bangla','Hind Siliguri',serif; font-weight:400; margin:0; color:var(--forest); }
+  button{ font-family:inherit; cursor:pointer; }
+  input, textarea, select{ font-family:inherit; }
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{
+    outline:3px solid var(--gold); outline-offset:2px;
+  }
+  .wrap{ max-width:640px; margin:0 auto; padding:0 16px; }
+
+  /* ---------- Login screen ---------- */
+  .login-screen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:var(--forest); padding:20px;
+  }
+  .login-card{
+    background:var(--card); border-radius:20px; padding:32px 26px; width:100%; max-width:380px;
+    box-shadow:var(--shadow-card);
+  }
+  .login-logo{
+    width:54px; height:54px; border-radius:14px; background:var(--gold); color:var(--forest);
+    display:flex; align-items:center; justify-content:center; font-family:'Tiro Bangla',serif;
+    font-size:1.4rem; margin:0 auto 16px;
+  }
+  .login-card h1{ text-align:center; font-size:1.4rem; margin-bottom:4px; }
+  .login-card p.sub{ text-align:center; color:var(--muted); font-size:0.9rem; margin-bottom:22px; }
+
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:0.86rem; font-weight:600; color:var(--forest); margin-bottom:6px; }
+  .field input, .field textarea, .field select{
+    width:100%; padding:13px 14px; border-radius:10px; border:1px solid var(--line);
+    background:#fff; font-size:1rem; color:var(--ink);
+  }
+  .field textarea{ resize:vertical; min-height:90px; }
+  .error-text{ color:var(--danger); font-size:0.88rem; margin:-6px 0 14px; display:none; }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:14px 22px; border-radius:999px; border:none;
+    font-size:1rem; font-weight:600; width:100%;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn-gold{ background:var(--gold); color:var(--forest); }
+  .btn-gold:hover{ background:#E7AE55; }
+  .btn-dark{ background:var(--forest); color:#fff; }
+  .btn-dark:hover{ background:var(--forest-light); }
+  .btn-outline{ background:#fff; color:var(--forest); border:1px solid var(--line); }
+  .btn[disabled]{ opacity:0.6; transform:none; cursor:not-allowed; }
+
+  /* ---------- App shell ---------- */
+  .app-screen{ display:none; min-height:100vh; }
+  header.admin-top{
+    background:var(--forest); color:#fff; padding:16px 0; position:sticky; top:0; z-index:20;
+  }
+  .admin-top-row{ display:flex; align-items:center; justify-content:space-between; }
+  .admin-top-row .brand{ display:flex; align-items:center; gap:10px; font-family:'Tiro Bangla',serif; font-size:1.15rem; }
+  .brand-mark{
+    width:34px; height:34px; border-radius:9px; background:var(--gold); color:var(--forest);
+    display:flex; align-items:center; justify-content:center; font-family:'Tiro Bangla',serif; font-size:1rem;
+  }
+  .logout-btn{
+    background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18); color:#fff;
+    padding:8px 14px; border-radius:999px; font-size:0.85rem; font-weight:600;
+  }
+  .logout-btn:hover{ background:rgba(255,255,255,0.18); }
+
+  .admin-body{ padding:20px 0 100px; }
+  .summary-row{ display:flex; gap:12px; margin-bottom:20px; }
+  .summary-card{
+    flex:1; background:var(--card); border:1px solid var(--line); border-radius:var(--radius-card);
+    padding:16px; text-align:center;
+  }
+  .summary-card b{ display:block; font-family:'Tiro Bangla',serif; font-size:1.5rem; color:var(--forest); }
+  .summary-card span{ font-size:0.8rem; color:var(--muted); }
+
+  .list-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .list-head h2{ font-size:1.15rem; }
+
+  .product-row{
+    display:flex; gap:12px; background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius-card); padding:12px; margin-bottom:12px; align-items:center;
+  }
+  .product-row img{ width:64px; height:64px; border-radius:10px; object-fit:cover; flex-shrink:0; background:var(--sage); }
+  .product-row .info{ flex:1; min-width:0; }
+  .product-row h3{ font-family:'Hind Siliguri',sans-serif; font-weight:600; font-size:0.98rem; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .product-row .meta{ font-size:0.82rem; color:var(--muted); margin-top:2px; }
+  .product-row .price{ font-family:'Tiro Bangla',serif; color:var(--gold-dark); font-size:1.05rem; margin-top:4px; }
+  .row-actions{ display:flex; flex-direction:column; gap:6px; }
+  .icon-action{
+    width:34px; height:34px; border-radius:10px; border:1px solid var(--line); background:#fff;
+    display:flex; align-items:center; justify-content:center; color:var(--forest);
+  }
+  .icon-action.danger{ color:var(--danger); }
+  .icon-action:hover{ background:var(--sage); }
+
+  .empty-note{ text-align:center; padding:40px 20px; color:var(--muted); background:var(--card); border-radius:var(--radius-card); border:1px dashed var(--line); }
+
+  .fab{
+    position:fixed; right:20px; bottom:24px; z-index:30;
+    width:60px; height:60px; border-radius:50%; background:var(--gold); color:var(--forest);
+    display:flex; align-items:center; justify-content:center; border:none;
+    box-shadow:0 10px 24px rgba(0,0,0,0.25); font-size:1.8rem;
+  }
+  .fab:hover{ background:#E7AE55; }
+
+  /* ---------- Form drawer ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(22,20,17,0.5); opacity:0; pointer-events:none;
+    transition:opacity .2s ease; z-index:40;
+  }
+  .overlay.open{ opacity:1; pointer-events:auto; }
+  .drawer{
+    position:fixed; top:0; right:0; height:100%; width:min(440px,94vw); background:var(--cream);
+    z-index:50; transform:translateX(100%); transition:transform .25s ease;
+    display:flex; flex-direction:column; box-shadow:-10px 0 30px rgba(0,0,0,0.18);
+  }
+  .drawer.open{ transform:translateX(0); }
+  .drawer-head{ padding:18px 20px; background:var(--forest); color:#fff; display:flex; justify-content:space-between; align-items:center; }
+  .drawer-head h2{ color:#fff; font-size:1.1rem; }
+  .drawer-close{ background:none; border:none; color:#fff; font-size:1.5rem; }
+  .drawer-body{ padding:20px; overflow-y:auto; flex:1; }
+  .drawer-foot{ padding:16px 20px; border-top:1px solid var(--line); background:#fff; display:flex; gap:10px; }
+  .drawer-foot .btn{ width:auto; flex:1; }
+
+  .img-upload{
+    border:2px dashed var(--line); border-radius:14px; padding:16px; text-align:center;
+    background:var(--sage); margin-bottom:6px; cursor:pointer;
+  }
+  .img-upload img{ max-width:100%; max-height:160px; border-radius:10px; margin-bottom:8px; }
+  .img-upload span{ font-size:0.85rem; color:var(--muted); display:block; }
+  .img-upload input{ display:none; }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--forest); color:#fff; padding:12px 20px; border-radius:999px;
+    font-size:0.9rem; z-index:100; opacity:0; pointer-events:none; transition:all .25s ease;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:420px){ .summary-row{ flex-wrap:wrap; } }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">শো</div>
+    <h1>এডমিন প্যানেল</h1>
+    <p class="sub">শোভন স্টোরের পণ্য পরিচালনা করুন</p>
+    <div class="field">
+      <label for="loginEmail">ইমেইল</label>
+      <input type="email" id="loginEmail" placeholder="আপনার ইমেইল" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="loginPassword">পাসওয়ার্ড</label>
+      <input type="password" id="loginPassword" placeholder="পাসওয়ার্ড" autocomplete="current-password">
+    </div>
+    <p class="error-text" id="loginError">ইমেইল বা পাসওয়ার্ড সঠিক নয়।</p>
+    <button class="btn btn-gold" id="loginBtn">লগইন করুন</button>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div class="app-screen" id="appScreen">
+  <header class="admin-top">
+    <div class="wrap admin-top-row">
+      <div class="brand"><span class="brand-mark">শো</span> এডমিন প্যানেল</div>
+      <button class="logout-btn" id="logoutBtn">লগআউট</button>
+    </div>
+  </header>
+
+  <div class="wrap admin-body">
+    <div class="summary-row">
+      <div class="summary-card"><b id="totalCount">০</b><span>মোট পণ্য</span></div>
+      <div class="summary-card"><b id="lowStockCount">০</b><span>সীমিত স্টক</span></div>
+    </div>
+
+    <div class="list-head">
+      <h2>সব পণ্য</h2>
+    </div>
+
+    <div id="productList"></div>
+    <div class="empty-note" id="emptyNote" style="display:none;">এখনো কোনো পণ্য যোগ করা হয়নি। নিচের + বাটনে চেপে প্রথম পণ্যটি যোগ করুন।</div>
+  </div>
+
+  <button class="fab" id="addBtn" aria-label="নতুন পণ্য যোগ করুন">+</button>
+</div>
+
+<!-- ================= FORM DRAWER ================= -->
+<div class="overlay" id="formOverlay"></div>
+<div class="drawer" id="formDrawer" role="dialog" aria-label="পণ্যের তথ্য">
+  <div class="drawer-head">
+    <h2 id="formTitle">নতুন পণ্য যোগ করুন</h2>
+    <button class="drawer-close" id="formCloseBtn" aria-label="বন্ধ করুন">&times;</button>
+  </div>
+  <div class="drawer-body">
+    <label class="img-upload" id="imgUploadLabel">
+      <img id="imgPreview" style="display:none;">
+      <span id="imgUploadText">ছবি বাছাই করতে এখানে চাপুন</span>
+      <input type="file" accept="image/*" id="imgInput">
+    </label>
+
+    <div class="field">
+      <label for="pName">পণ্যের নাম</label>
+      <input type="text" id="pName" placeholder="যেমন: সুতি পাঞ্জাবি">
+    </div>
+    <div class="field">
+      <label for="pCategory">ক্যাটাগরি</label>
+      <input type="text" id="pCategory" list="categorySuggestions" placeholder="যেমন: ফ্যাশন">
+      <datalist id="categorySuggestions"></datalist>
+    </div>
+    <div class="field">
+      <label for="pPrice">দাম (৳)</label>
+      <input type="number" id="pPrice" placeholder="যেমন: ৫০০">
+    </div>
+    <div class="field">
+      <label for="pOldPrice">আগের দাম (৳) — ঐচ্ছিক, ছাড় দেখাতে চাইলে দিন</label>
+      <input type="number" id="pOldPrice" placeholder="যেমন: ৬৫০">
+    </div>
+    <div class="field">
+      <label for="pStock">স্টক অবস্থা</label>
+      <select id="pStock">
+        <option value="স্টকে আছে">স্টকে আছে</option>
+        <option value="সীমিত স্টক">সীমিত স্টক</option>
+        <option value="স্টক শেষ">স্টক শেষ</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="pDesc">বিবরণ</label>
+      <textarea id="pDesc" placeholder="পণ্য সম্পর্কে সংক্ষেপে লিখুন"></textarea>
+    </div>
+    <p class="error-text" id="formError">সব তথ্য ঠিকভাবে পূরণ করুন।</p>
+  </div>
+  <div class="drawer-foot">
+    <button class="btn btn-outline" id="deleteBtn" style="display:none;">মুছে ফেলুন</button>
+    <button class="btn btn-gold" id="saveBtn">সংরক্ষণ করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let PRODUCTS = [];
+let editingId = null;   // null মানে নতুন পণ্য যোগ হচ্ছে
+let pendingImageFile = null;
+let currentImageUrl = "";
+
+/* ---------- Toast ---------- */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+/* ---------- Auth ---------- */
+const loginScreen = document.getElementById('loginScreen');
+const appScreen = document.getElementById('appScreen');
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    loginScreen.style.display = 'none';
+    appScreen.style.display = 'block';
+    listenToProducts();
+  } else {
+    loginScreen.style.display = 'flex';
+    appScreen.style.display = 'none';
+  }
+});
+
+document.getElementById('loginBtn').addEventListener('click', ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errorEl = document.getElementById('loginError');
+  errorEl.style.display = 'none';
+
+  auth.signInWithEmailAndPassword(email, password).catch(err=>{
+    errorEl.textContent = 'ইমেইল বা পাসওয়ার্ড সঠিক নয়। আবার চেষ্টা করুন।';
+    errorEl.style.display = 'block';
+  });
+});
+
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  auth.signOut();
+});
+
+/* ---------- Product list (live from Firestore) ---------- */
+const productListEl = document.getElementById('productList');
+const emptyNote = document.getElementById('emptyNote');
+const totalCountEl = document.getElementById('totalCount');
+const lowStockCountEl = document.getElementById('lowStockCount');
+const categorySuggestions = document.getElementById('categorySuggestions');
+
+function bnNumber(n){
+  const digits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+  return String(n).replace(/\d/g, d => digits[d]);
+}
+
+function listenToProducts(){
+  db.collection('products').orderBy('createdAt','desc').onSnapshot(snapshot=>{
+    PRODUCTS = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderList();
+  }, err=>{
+    productListEl.innerHTML = `<div class="empty-note">পণ্য লোড করা যাচ্ছে না। ইন্টারনেট সংযোগ পরীক্ষা করুন।</div>`;
+    console.error(err);
+  });
+}
+
+function renderList(){
+  totalCountEl.textContent = bnNumber(PRODUCTS.length);
+  lowStockCountEl.textContent = bnNumber(PRODUCTS.filter(p=>p.stock==='সীমিত স্টক').length);
+
+  categorySuggestions.innerHTML = [...new Set(PRODUCTS.map(p=>p.category))]
+    .map(c=>`<option value="${c}">`).join('');
+
+  if(PRODUCTS.length === 0){
+    productListEl.innerHTML = '';
+    emptyNote.style.display = 'block';
+    return;
+  }
+  emptyNote.style.display = 'none';
+
+  productListEl.innerHTML = PRODUCTS.map(p => `
+    <div class="product-row">
+      <img src="${p.image || 'https://placehold.co/120x120/E7EFE6/163A2E?text=%E0%A6%AA%E0%A6%A3%E0%A7%8D%E0%A6%AF'}" alt="${p.name}">
+      <div class="info">
+        <h3>${p.name}</h3>
+        <div class="meta">${p.category} · ${p.stock}</div>
+        <div class="price">৳ ${bnNumber(p.price)}</div>
+      </div>
+      <div class="row-actions">
+        <button class="icon-action" data-action="edit" data-id="${p.id}" aria-label="এডিট করুন">✎</button>
+        <button class="icon-action danger" data-action="delete" data-id="${p.id}" aria-label="মুছে ফেলুন">🗑</button>
+      </div>
+    </div>
+  `).join('');
+
+  productListEl.querySelectorAll('[data-action]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.id;
+      if(btn.dataset.action === 'edit') openForm(PRODUCTS.find(p=>p.id===id));
+      if(btn.dataset.action === 'delete') deleteProduct(id);
+    });
+  });
+}
+
+/* ---------- Form drawer ---------- */
+const formOverlay = document.getElementById('formOverlay');
+const formDrawer = document.getElementById('formDrawer');
+const formTitle = document.getElementById('formTitle');
+const imgPreview = document.getElementById('imgPreview');
+const imgUploadText = document.getElementById('imgUploadText');
+const imgInput = document.getElementById('imgInput');
+const deleteBtn = document.getElementById('deleteBtn');
+const formError = document.getElementById('formError');
+
+function openForm(product){
+  editingId = product ? product.id : null;
+  pendingImageFile = null;
+  formError.style.display = 'none';
+
+  formTitle.textContent = product ? 'পণ্য এডিট করুন' : 'নতুন পণ্য যোগ করুন';
+  document.getElementById('pName').value = product ? product.name : '';
+  document.getElementById('pCategory').value = product ? product.category : '';
+  document.getElementById('pPrice').value = product ? product.price : '';
+  document.getElementById('pOldPrice').value = product && product.oldPrice ? product.oldPrice : '';
+  document.getElementById('pStock').value = product ? product.stock : 'স্টকে আছে';
+  document.getElementById('pDesc').value = product ? (product.desc || '') : '';
+
+  currentImageUrl = product ? (product.image || '') : '';
+  if(currentImageUrl){
+    imgPreview.src = currentImageUrl;
+    imgPreview.style.display = 'block';
+    imgUploadText.textContent = 'ছবি বদলাতে চাইলে এখানে চাপুন';
+  } else {
+    imgPreview.style.display = 'none';
+    imgUploadText.textContent = 'ছবি বাছাই করতে এখানে চাপুন';
+  }
+
+  deleteBtn.style.display = product ? 'inline-flex' : 'none';
+
+  formOverlay.classList.add('open');
+  formDrawer.classList.add('open');
+}
+
+function closeForm(){
+  formOverlay.classList.remove('open');
+  formDrawer.classList.remove('open');
+}
+
+document.getElementById('addBtn').addEventListener('click', ()=> openForm(null));
+document.getElementById('formCloseBtn').addEventListener('click', closeForm);
+formOverlay.addEventListener('click', closeForm);
+
+imgInput.addEventListener('change', ()=>{
+  const file = imgInput.files[0];
+  if(!file) return;
+  pendingImageFile = file;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    imgPreview.src = e.target.result;
+    imgPreview.style.display = 'block';
+    imgUploadText.textContent = 'ছবি বদলাতে চাইলে আবার এখানে চাপুন';
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ---------- imgbb ছবি আপলোড ---------- */
+async function uploadImage(file){
+  const fd = new FormData();
+  fd.append('image', file);
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+    method: 'POST', body: fd
+  });
+  const data = await res.json();
+  if(!data.success) throw new Error('ছবি আপলোড ব্যর্থ হয়েছে');
+  return data.data.url;
+}
+
+/* ---------- Save (add বা edit) ---------- */
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('pName').value.trim();
+  const category = document.getElementById('pCategory').value.trim();
+  const price = Number(document.getElementById('pPrice').value);
+  const oldPriceRaw = document.getElementById('pOldPrice').value;
+  const oldPrice = oldPriceRaw ? Number(oldPriceRaw) : null;
+  const stock = document.getElementById('pStock').value;
+  const desc = document.getElementById('pDesc').value.trim();
+
+  if(!name || !category || !price || (!pendingImageFile && !currentImageUrl)){
+    formError.textContent = 'নাম, ক্যাটাগরি, দাম ও ছবি — সবগুলো পূরণ করুন।';
+    formError.style.display = 'block';
+    return;
+  }
+
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'সংরক্ষণ হচ্ছে...';
+
+  try{
+    let imageUrl = currentImageUrl;
+    if(pendingImageFile){
+      imageUrl = await uploadImage(pendingImageFile);
+    }
+
+    const productData = { name, category, price, oldPrice, stock, desc, image: imageUrl };
+
+    if(editingId){
+      await db.collection('products').doc(editingId).update(productData);
+      showToast('পণ্য আপডেট হয়েছে ✓');
+    } else {
+      productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('products').add(productData);
+      showToast('নতুন পণ্য যোগ হয়েছে ✓');
+    }
+    closeForm();
+  } catch(err){
+    console.error(err);
+    formError.textContent = 'সংরক্ষণ করা যায়নি। ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।';
+    formError.style.display = 'block';
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'সংরক্ষণ করুন';
+  }
+});
+
+/* ---------- Delete ---------- */
+async function deleteProduct(id){
+  if(!confirm('আপনি কি নিশ্চিত এই পণ্যটি মুছে ফেলতে চান?')) return;
+  try{
+    await db.collection('products').doc(id).delete();
+    showToast('পণ্য মুছে ফেলা হয়েছে');
+  } catch(err){
+    console.error(err);
+    alert('মুছে ফেলা যায়নি, আবার চেষ্টা করুন।');
+  }
+}
+deleteBtn.addEventListener('click', ()=>{
+  if(editingId){
+    closeForm();
+    deleteProduct(editingId);
+  }
+});
+</script>
+
+</body>
+</html>
