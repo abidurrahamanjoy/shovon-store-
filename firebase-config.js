@@ -8,7 +8,7 @@ const STORE_CONFIG = {
   whatsappNumber: "880 1779-088009", // আপনার হোয়াটসঅ্যাপ নম্বর দিন (দেশের কোড সহ, + ছাড়া)
   currency: "৳",
   adminUID: "h8Dz1CPX4ghH3VLSr7XWZU0lvJC2", // আপনার দেওয়া এডমিন UID
-  imgbbApiKey: "YOUR_IMGBB_API_KEY" // imgbb.com থেকে ফ্রি API Key নিয়ে এখানে বসান
+  imgbbApiKey: "ce3852b445148d1506426c2d7bda6e15" // imgbb.com থেকে ফ্রি API Key নিয়ে এখানে বসান
 };
 
 // ২) Firebase কনফিগারেশন
