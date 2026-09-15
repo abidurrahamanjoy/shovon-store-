@@ -4,9 +4,9 @@
 
 const STORE_CONFIG = {
   storeName: "শোভন স্টোর",
-  whatsappNumber: "8801XXXXXXXXX", // আপনার হোয়াটসঅ্যাপ নম্বর দিন (দেশের কোড সহ, + ছাড়া)
+  whatsappNumber: "880 1779-088009", // আপনার হোয়াটসঅ্যাপ নম্বর দিন (দেশের কোড সহ, + ছাড়া)
   currency: "৳",
-  adminUID: "আপনার_এডমিন_UID_এখানে_দিন" // ফায়ারবেস Authentication থেকে আপনার UID কপি করে এখানে বসান
+  adminUID: "h8Dz1CPX4ghH3VLSr7XWZU0lvJC2" // ফায়ারবেস Authentication থেকে আপনার UID কপি করে এখানে বসান
 };
 
 // আপনার দেওয়া ফায়ারবেস প্রজেক্ট সেটিংস
