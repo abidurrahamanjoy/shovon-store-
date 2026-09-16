@@ -464,8 +464,8 @@ function updateSiteInfoUI() {
     document.title = SITE_SETTINGS.storeName + " | স্টোর";
 
     const cleanWaNum = SITE_SETTINGS.whatsappNumber.replace(/[^0-9]/g, '');
-    document.getElementById('floatWaBtn').href = `https://wa.me/${cleanWaNum}?text=আসসালামু আলাইকুম`;
-    document.getElementById('menuWaLink').href = `https://wa.me/${cleanWaNum}?text=আসসালামু আলাইকুম`;
+    document.getElementById('floatWaBtn').href = `whatsapp://send?phone=${cleanWaNum}&text=আসসালামু আলাইকুম`;
+    document.getElementById('menuWaLink').href = `whatsapp://send?phone=${cleanWaNum}&text=আসসালামু আলাইকুম`;
 
     const logoEl = document.getElementById('siteLogoImg');
     if(SITE_SETTINGS.logoUrl) {
@@ -770,7 +770,7 @@ document.getElementById('checkoutBtn').addEventListener('click', () => {
   text += `\n💰 *সর্বমোট:* ${SITE_SETTINGS.currency || STORE_CONFIG.currency}${total}\n\n👤 *নাম:* ${n}\n📞 *মোবাইল:* ${p}\n📍 *ঠিকানা:* ${a}`;
 
   const cleanWaNum = SITE_SETTINGS.whatsappNumber.replace(/[^0-9]/g, '');
-  window.open(`https://wa.me/${cleanWaNum}?text=${encodeURIComponent(text)}`, '_blank');
+  window.open(`whatsapp://send?phone=${cleanWaNum}&text=${encodeURIComponent(text)}`, '_self');
 });
 
 /* ---------------- Admin: product form ---------------- */
@@ -828,7 +828,7 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
         data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
         await db.collection('products').add(data);
     }
-    closeAllDrawers(); showToast("সফলভাবে সংরক্ষিত হয়েছে!");
+    closeAllDrawers(); showToast("সফলভাবে সেভ হয়েছে!");
   } catch(e) {
       console.error(e);
       alert("সংরক্ষণে সমস্যা হয়েছে: " + e.message);
@@ -838,7 +838,7 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
 });
 
 window.deleteProduct = async (id) => {
-    if(confirm("আপনি কি নিশ্চিতভাবে এই পণ্যটি মুছে ফেলতে চান?")) {
+    if(confirm("আপনি কি নিশ্চিতভাবে এই পণ্যটি ডিলিট করতে চান?")) {
         try {
             await db.collection('products').doc(id).delete();
             showToast("পণ্য মুছে ফেলা হয়েছে");
