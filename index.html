@@ -66,11 +66,13 @@
   .categories { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 26px; scrollbar-width: none; }
   .categories::-webkit-scrollbar { display: none; }
   .cat-item { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; cursor: pointer; }
+  .cat-img-outer { position: relative; }
   .cat-img { width: 62px; height: 62px; border-radius: 50%; background: var(--sand); overflow: hidden; box-shadow: var(--shadow-card); transition: box-shadow 0.2s; }
   .cat-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
   .cat-item.active .cat-img { box-shadow: 0 0 0 2.5px var(--accent), var(--shadow-card); }
   .cat-item span { font-size: 0.78rem; font-weight: 600; color: var(--ink-soft); }
   .cat-item.active span { color: var(--ink); }
+  .cat-edit-btn { position: absolute; bottom: -2px; right: -2px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer; z-index: 2; }
 
   /* ================= PRODUCT GRID ================= */
   .section-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 16px; color: var(--ink); }
@@ -376,6 +378,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 let PRODUCTS = [];
+let CATEGORY_IMAGES = {};
 let isAdmin = false;
 let activeCategory = "সব";
 let activeView = "home"; // "home" | "favorites"
@@ -504,9 +507,7 @@ auth.onAuthStateChanged(user => {
       }
   } else {
       document.getElementById('accountDrawerTitle').textContent = "এডমিন লগইন";
-      document.getElementById('loginFormSection').style.display = 'block';
-      document.getElementById('adminMenuSection').style.display = 'none';
-  }
+  renderCategories();
   renderProducts();
 });
 
@@ -598,11 +599,24 @@ const catImages = {
   "ব্যাগ": "https://images.unsplash.com/photo-1583485088034-607b3dd3308a?q=80&w=150&auto=format&fit=crop"
 };
 
+db.collection('categories').onSnapshot(snapshot => {
+  CATEGORY_IMAGES = {};
+  snapshot.docs.forEach(doc => { CATEGORY_IMAGES[doc.id] = doc.data().image; });
+  renderCategories();
+}, err => console.error(err));
+
 function renderCategories() {
   const cats = ["সব", ...new Set(PRODUCTS.map(p => p.category))];
   const html = cats.map(c => `
     <div class="cat-item ${c === activeCategory ? 'active' : ''}" data-cat="${c}">
-      <div class="cat-img"><img src="${catImages[c] || 'https://images.unsplash.com/photo-1518600506278-4e8ef466b810?w=150'}" alt="${c}"></div>
+      <div class="cat-img-outer">
+        <div class="cat-img"><img src="${CATEGORY_IMAGES[c] || catImages[c] || 'https://images.unsplash.com/photo-1518600506278-4e8ef466b810?w=150'}" alt="${c}"></div>
+        ${isAdmin ? `
+        <label class="cat-edit-btn" onclick="event.stopPropagation()">
+          ✎
+          <input type="file" accept="image/*" class="cat-file-input" style="display:none;">
+        </label>` : ''}
+      </div>
       <span>${c}</span>
     </div>
   `).join('');
@@ -611,6 +625,28 @@ function renderCategories() {
   document.querySelectorAll('.cat-item').forEach(btn => {
     btn.addEventListener('click', () => { activeCategory = btn.dataset.cat; activeView = 'home'; renderCategories(); renderProducts(); });
   });
+
+  document.querySelectorAll('.cat-file-input').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const catName = input.closest('.cat-item').dataset.cat;
+      const file = e.target.files[0];
+      if (file) uploadCategoryImage(catName, file);
+    });
+  });
+}
+
+async function uploadCategoryImage(catName, file) {
+  showToast("ছবি আপলোড হচ্ছে...");
+  try {
+    const fd = new FormData(); fd.append('image', file);
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${STORE_CONFIG.imgbbApiKey}`, { method: 'POST', body: fd });
+    const json = await res.json();
+    if(!json.data || !json.data.url) throw new Error("ছবি আপলোড ব্যর্থ হয়েছে");
+    await db.collection('categories').doc(catName).set({ image: json.data.url }, { merge: true });
+    showToast("ক্যাটাগরির ছবি পরিবর্তন হয়েছে");
+  } catch(e) {
+    alert("ক্যাটাগরি ছবি সংরক্ষণে সমস্যা হয়েছে: " + e.message);
+  }
 }
 
 function renderProducts() {
@@ -623,7 +659,11 @@ function renderProducts() {
   }
 
   if (searchTerm) {
-    list = list.filter(p => p.name.toLowerCase().includes(searchTerm));
+    list = list.filter(p =>
+      (p.name || '').toLowerCase().includes(searchTerm) ||
+      (p.category || '').toLowerCase().includes(searchTerm) ||
+      (p.description || '').toLowerCase().includes(searchTerm)
+    );
   }
 
   document.getElementById('section-heading') && (document.getElementById('section-heading').textContent = activeView === 'favorites' ? 'প্রিয় তালিকা' : 'ট্রেন্ডিং পণ্যসমূহ');
