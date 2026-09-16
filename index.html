@@ -507,6 +507,9 @@ auth.onAuthStateChanged(user => {
       }
   } else {
       document.getElementById('accountDrawerTitle').textContent = "এডমিন লগইন";
+      document.getElementById('loginFormSection').style.display = 'block';
+      document.getElementById('adminMenuSection').style.display = 'none';
+  }
   renderCategories();
   renderProducts();
 });
