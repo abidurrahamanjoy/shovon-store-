@@ -2,16 +2,23 @@
    ⚙️ দোকানের সেটিংস এবং ফায়ারবেস কনফিগারেশন
    ============================================================ */
 
-// ১) দোকানের সাধারণ তথ্য
 const STORE_CONFIG = {
   storeName: "শোভন স্টোর",
-  whatsappNumber: "880 1779-088009", // আপনার হোয়াটসঅ্যাপ নম্বর দিন (দেশের কোড সহ, + ছাড়া)
+  whatsappNumber: "8801779088009",
   currency: "৳",
-  adminUID: "h8Dz1CPX4ghH3VLSr7XWZU0lvJC2", // আপনার দেওয়া এডমিন UID
-  imgbbApiKey: "ce3852b445148d1506426c2d7bda6e15" // imgbb.com থেকে ফ্রি API Key নিয়ে এখানে বসান
+  adminUID: "h8Dz1CPX4ghH3VLSr7XWZU0lvJC2",
+
+  /* bKash Merchant API (ঐচ্ছিক) — খালি রাখলে সাইট manual TrxID-verification
+     মোডে চলবে (এটাই এখন বেস্ট ফ্রি অপশন)। বিজনেস bKash Merchant/PGW
+     credentials পেলে জানাবেন, তখন live checkout-এর জন্য Cloud Function
+     বানিয়ে জুড়ে দেব। */
+  bkashMerchantApiKey: "",
+
+  /* Google Analytics (ঐচ্ছিক, ফ্রি) — analytics.google.com থেকে
+     Measurement ID (G-XXXXXXX ফরম্যাট) নিয়ে বসালে ভিজিটর ট্র্যাকিং চালু হবে। */
+  googleAnalyticsId: ""
 };
 
-// ২) Firebase কনফিগারেশন
 const firebaseConfig = {
   apiKey: "AIzaSyDtBBv3LV8bsRuFpTgUl3OwHpnw5_K5j7U",
   authDomain: "shovon-store.firebaseapp.com",
@@ -20,6 +27,3 @@ const firebaseConfig = {
   messagingSenderId: "762606693444",
   appId: "1:762606693444:web:dc45d67b674c235547e011"
 };
-
-// ৩) ছবি আপলোডের জন্য (যদি প্রয়োজন হয়)
-const IMGBB_API_KEY = "ce3852b445148d1506426c2d7bda6e15";
