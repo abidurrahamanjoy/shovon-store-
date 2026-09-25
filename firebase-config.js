@@ -19,8 +19,8 @@ const STORE_CONFIG = {
         Signing mode: "Unsigned" করে সেভ করুন — সেই preset-এর নাম নিচে বসান।
      এই preset-টা ক্লায়েন্ট থেকে নিরাপদে আপলোডের জন্য ডিজাইন করা —
      কোনো গোপন key এখানে দরকার হয় না। */
-  cloudinaryCloudName: "",
-  cloudinaryUploadPreset: "",
+  cloudinaryCloudName: "kzrmwfn8",
+  cloudinaryUploadPreset: "e-commerce 1",
 
   /* bKash Merchant API (ঐচ্ছিক) — খালি রাখলে সাইট manual TrxID-verification
      মোডে চলবে (এটাই এখন বেস্ট ফ্রি অপশন)। বিজনেস bKash Merchant/PGW
