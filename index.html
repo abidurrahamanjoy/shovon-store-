@@ -497,6 +497,7 @@
     <button class="modal-close-x" onclick="closeAuthModal()">&times;</button>
     <h2>লগইন / একাউন্ট তৈরি করুন</h2>
     <p style="font-size:0.82rem; color:var(--ink-soft); margin-bottom:14px;">ফোন নম্বর দিয়ে লগইন করুন — নতুন হলে একাউন্ট অটো তৈরি হবে।</p>
+    <div class="field"><input type="tel" id="modalAuthPhone" placeholder="মোবাইল নম্বর (01XXXXXXXXX)"></div>
     <div class="field"><input type="text" id="modalAuthPassword" placeholder="সিক্রেট পিন বা পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)" style="-webkit-text-security: disc; text-security: disc;"></div>
     <p id="modalAuthError" style="color:#C0392B; display:none; font-size:0.8rem; margin-bottom:10px;"></p>
     <button class="btn-block" id="modalAuthSubmitBtn" style="margin-bottom:0;">লগইন / একাউন্ট তৈরি করুন</button>
@@ -1017,8 +1018,8 @@ function openChatAboutProduct(p) {
 /* ---------------- Cart & Checkout ---------------- */
 window.addToCart = (id) => { cart[id] = (cart[id] || 0) + 1; localStorage.setItem('shuvon_cart', JSON.stringify(cart)); updateCartUI(); showToast("কার্টে যোগ করা হয়েছে"); }
 document.getElementById('cartOpenBtn').addEventListener('click', () => {
-  if (!(isCustomer && auth.currentUser)) { openAuthModal(() => { updateCartUI(); openDrawer('cartDrawer'); }); return; }
-  updateCartUI(); openDrawer('cartDrawer');
+  updateCartUI(); 
+  openDrawer('cartDrawer');
 });
 
 function computeDeliveryCharge() {
