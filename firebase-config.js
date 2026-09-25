@@ -8,6 +8,20 @@ const STORE_CONFIG = {
   currency: "৳",
   adminUID: "h8Dz1CPX4ghH3VLSr7XWZU0lvJC2",
 
+  /* ছবি হোস্টিং — Cloudinary (ফ্রি, কোনো কার্ড লাগে না, আনলিমিটেডের কাছাকাছি
+     ফ্রি টায়ার: ২৫GB স্টোরেজ + ২৫GB ব্যান্ডউইথ/মাস, ফাস্ট CDN)।
+     Firebase Storage এখন Blaze (billing card) ছাড়া ব্যবহার করা যায় না,
+     তাই এটাই বদলে দেওয়া হলো।
+     সেটআপ (৫ মিনিট, ফ্রি):
+     ১) https://cloudinary.com -এ ফ্রি সাইনআপ করুন (কার্ড লাগবে না)।
+     ২) Dashboard-এ আপনার "Cloud name" দেখতে পাবেন — নিচে বসান।
+     ৩) Settings → Upload → "Upload presets" → Add upload preset →
+        Signing mode: "Unsigned" করে সেভ করুন — সেই preset-এর নাম নিচে বসান।
+     এই preset-টা ক্লায়েন্ট থেকে নিরাপদে আপলোডের জন্য ডিজাইন করা —
+     কোনো গোপন key এখানে দরকার হয় না। */
+  cloudinaryCloudName: "",
+  cloudinaryUploadPreset: "",
+
   /* bKash Merchant API (ঐচ্ছিক) — খালি রাখলে সাইট manual TrxID-verification
      মোডে চলবে (এটাই এখন বেস্ট ফ্রি অপশন)। বিজনেস bKash Merchant/PGW
      credentials পেলে জানাবেন, তখন live checkout-এর জন্য Cloud Function
