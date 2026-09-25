@@ -152,7 +152,8 @@
 
   .overlay { position: fixed; inset: 0; background: rgba(20,17,12,0.55); opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 80; }
   .overlay.open { opacity: 1; pointer-events: auto; }
-  .drawer { position: fixed; top: 0; right: 0; height: 100%; width: 85vw; max-width: 400px; background: var(--paper); z-index: 90; transform: translateX(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100%; width: 85vw; max-width: 400px; background: rgba(255,255,255,0.72); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); border-left: 1px solid rgba(255,255,255,0.45); z-index: 90; transform: translateX(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; }
+  .drawer.left { border-left: none; border-right: 1px solid rgba(255,255,255,0.45); }
   .drawer.left { right: auto; left: 0; transform: translateX(-100%); }
   .drawer.open { transform: translateX(0); }
   .drawer-head { padding: calc(env(safe-area-inset-top,0px) + 20px) 20px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); }
@@ -165,8 +166,15 @@
   .fullview { position: fixed; inset: 0; z-index: 95; background: rgba(20,17,12,0.35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity:0; pointer-events:none; transition: opacity 0.25s; overflow-y: auto; }
   .fullview.open { opacity:1; pointer-events:auto; }
   .fullview-inner { max-width: 560px; margin: 0 auto; min-height: 100%; padding-bottom: 40px; }
-  .fullview-img-wrap { position: relative; width:100%; aspect-ratio: 1/1; }
+  .fullview-img-wrap { position: relative; width:100%; aspect-ratio: 1/1; background: var(--sand); }
   .fullview-img-wrap img { width:100%; height:100%; object-fit: cover; }
+  .fullview-slider { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; width:100%; height:100%; scrollbar-width:none; }
+  .fullview-slider::-webkit-scrollbar { display:none; }
+  .fullview-slide { flex:0 0 100%; width:100%; height:100%; scroll-snap-align:start; }
+  .fullview-slide img { width:100%; height:100%; object-fit:cover; }
+  .slider-dots { position:absolute; bottom:12px; left:0; right:0; display:flex; justify-content:center; gap:6px; z-index:2; pointer-events:none; }
+  .slider-dots .dot { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,0.5); transition: all .2s; }
+  .slider-dots .dot.active { background:#fff; width:16px; border-radius:4px; }
   .fullview-close { position: absolute; top: calc(env(safe-area-inset-top,0px) + 16px); left: 16px; width: 40px; height: 40px; border-radius: 50%; display:flex; align-items:center; justify-content:center; z-index:2; }
   .fullview-wish { position: absolute; top: calc(env(safe-area-inset-top,0px) + 16px); right: 16px; width: 40px; height: 40px; border-radius: 50%; display:flex; align-items:center; justify-content:center; z-index:2; }
   .fullview-body { background: var(--paper); border-radius: 22px 22px 0 0; margin-top: -22px; position: relative; padding: 24px 20px 20px; }
@@ -219,7 +227,8 @@
 
   /* চ্যাট */
   .chat-thread { display:flex; flex-direction:column; gap:10px; }
-  .chat-bubble { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 0.88rem; line-height:1.5; }
+  .chat-bubble { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 0.88rem; line-height:1.5; word-break: break-word; overflow-wrap: anywhere; }
+  .chat-bubble a { color: inherit; text-decoration: underline; font-weight: 700; }
   .chat-bubble.customer { align-self:flex-end; background: var(--accent); color:#fff; border-bottom-right-radius: 4px; }
   .chat-bubble.admin { align-self:flex-start; background: var(--sand); color: var(--ink); border-bottom-left-radius: 4px; }
   .chat-input-row { display:flex; gap:8px; padding: 12px 16px calc(env(safe-area-inset-bottom,0px) + 12px); border-top:1px solid var(--line); }
@@ -327,7 +336,8 @@
       <button class="fullview-wish glass" id="fvWishBtn" onclick="toggleWishlistFromView()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       </button>
-      <img id="fvImage" src="" alt="">
+      <div class="fullview-slider" id="fvSlider" onscroll="updateFvDots()"></div>
+      <div class="slider-dots" id="fvDots"></div>
     </div>
     <div class="fullview-body">
       <span class="stock-tag" id="fvStockTag" style="position:static; display:inline-block; margin-bottom:10px;"></span>
@@ -503,9 +513,9 @@
   <div class="drawer-head"><h2 id="formTitle">পণ্য যোগ করুন</h2><button class="drawer-close" onclick="closeAllDrawers()">&times;</button></div>
   <div class="drawer-body">
     <label style="display:block; border: 1.5px dashed var(--accent); border-radius: 14px; padding: 20px; text-align: center; margin-bottom: 16px; cursor: pointer; background: var(--sand);">
-      <img id="imgPreview" style="display:none; max-height: 120px; margin: 0 auto 10px; border-radius: 8px;">
-      <span style="font-size: 0.85rem; color: var(--accent-dark); font-weight:600;">ছবির জন্য এখানে চাপুন</span>
-      <input type="file" accept="image/*" id="imgInput" style="display:none;">
+      <div id="imgPreviewContainer" style="display:flex; gap:8px; overflow-x:auto; margin-bottom:10px;"></div>
+      <span style="font-size: 0.85rem; color: var(--accent-dark); font-weight:600;">একাধিক ছবি নির্বাচন করতে চাপুন (প্রথমটা প্রধান ছবি হবে)</span>
+      <input type="file" accept="image/*" multiple id="imgInput" style="display:none;">
     </label>
     <div class="field"><label>পণ্যের নাম</label><input type="text" id="pName"></div>
     <div class="field"><label>ক্যাটাগরি</label><input type="text" id="pCategory"></div>
@@ -580,7 +590,7 @@ let adminChatUnsub = null;
 let openAdminChatUid = null;
 let pendingAuthSuccessCallback = null;
 
-let pendingImageFile = null, currentImageUrl = "";
+let pendingProductImages = [], currentProductImageUrls = [];
 let pendingLogoFile = null, currentLogoUrl = "";
 let draftHeroImages = [];
 
@@ -870,7 +880,11 @@ function startAdminNotificationListeners() {
 }
 
 /* ---------------- চ্যাট: কাস্টমার সাইড ---------------- */
-function chatBubbleHtml(m) { return `<div class="chat-bubble ${m.sender}">${escapeHtml(m.text)}</div>`; }
+function linkifyChatText(text) {
+  const escaped = escapeHtml(text);
+  return escaped.replace(/(https?:\/\/[^\s]+)/g, (url) => `<a href="${url}" target="_blank">🔗 প্রোডাক্টটি দেখুন</a>`);
+}
+function chatBubbleHtml(m) { return `<div class="chat-bubble ${m.sender}">${linkifyChatText(m.text)}</div>`; }
 
 function startChat() {
   if (!auth.currentUser || isAdmin) return;
@@ -1089,7 +1103,9 @@ function handleDeepLinkOnLoad() {
 window.addEventListener('popstate', () => { const params = new URLSearchParams(location.search); const pid = params.get('p'); if (pid) openFullview(pid, true); else closeFullview(); });
 
 function openChatAboutProduct(p) {
-  const goToChat = () => { closeFullview(); openDrawer('chatDrawer'); startChat(); document.getElementById('chatInput').value = `"${p.name}" সম্পর্কে জানতে চাই — `; document.getElementById('chatInput').focus(); };
+  const productUrl = `${window.location.origin}${window.location.pathname}?p=${p.id}`;
+  const prefillMsg = `"${p.name}" সম্পর্কে জানতে চাই — ${productUrl}`;
+  const goToChat = () => { closeFullview(); openDrawer('chatDrawer'); startChat(); document.getElementById('chatInput').value = prefillMsg; document.getElementById('chatInput').focus(); };
   if (isCustomer && auth.currentUser) goToChat();
   else openAuthModal(goToChat);
 }
@@ -1230,14 +1246,22 @@ window.saveOrderAdmin = async (id) => {
 
 /* ---------------- Admin: product form ---------------- */
 document.getElementById('adminFabBtn').addEventListener('click', () => openProductForm(null));
+function renderImgPreviewContainer(urls) {
+  document.getElementById('imgPreviewContainer').innerHTML = urls.map(u => `<img src="${u}" style="height:64px; width:64px; object-fit:cover; border-radius:8px; flex-shrink:0;">`).join('');
+}
 document.getElementById('imgInput').addEventListener('change', (e) => {
-  const file = e.target.files[0]; if(!file) return; pendingImageFile = file;
-  const reader = new FileReader();
-  reader.onload = ev => { document.getElementById('imgPreview').src = ev.target.result; document.getElementById('imgPreview').style.display = 'block'; };
-  reader.readAsDataURL(file);
+  pendingProductImages = Array.from(e.target.files);
+  if (!pendingProductImages.length) return;
+  const previews = new Array(pendingProductImages.length);
+  let loaded = 0;
+  pendingProductImages.forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = ev => { previews[i] = ev.target.result; loaded++; if (loaded === pendingProductImages.length) renderImgPreviewContainer(previews); };
+    reader.readAsDataURL(file);
+  });
 });
 window.openProductForm = (id) => {
-  editingId = id; pendingImageFile = null;
+  editingId = id; pendingProductImages = [];
   const p = id ? PRODUCTS.find(x => x.id === id) : null;
   document.getElementById('formTitle').textContent = p ? 'পণ্য এডিট করুন' : 'পণ্য যোগ করুন';
   document.getElementById('pName').value = p ? p.name : '';
@@ -1245,9 +1269,8 @@ window.openProductForm = (id) => {
   document.getElementById('pPrice').value = p ? p.price : '';
   document.getElementById('pDesc').value = p ? (p.description || '') : '';
   document.getElementById('pStock').value = p ? p.stock : 'স্টকে আছে';
-  currentImageUrl = p ? p.image : '';
-  document.getElementById('imgPreview').src = currentImageUrl;
-  document.getElementById('imgPreview').style.display = currentImageUrl ? 'block' : 'none';
+  currentProductImageUrls = p ? (p.images && p.images.length ? p.images : (p.image ? [p.image] : [])) : [];
+  renderImgPreviewContainer(currentProductImageUrls);
   openDrawer('formDrawer');
 }
 document.getElementById('logoInput').addEventListener('change', (e) => {
@@ -1310,8 +1333,13 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
   if(!data.name || !data.price) return alert("দয়া করে নাম ও দাম পূরণ করুন");
   btn.disabled = true; btn.textContent = "সংরক্ষণ হচ্ছে...";
   try {
-    if(pendingImageFile) data.image = await uploadToStorage(pendingImageFile, 'products');
-    else data.image = currentImageUrl || 'https://via.placeholder.com/300';
+    let imageUrls = currentProductImageUrls;
+    if (pendingProductImages.length) {
+      imageUrls = [];
+      for (const file of pendingProductImages) imageUrls.push(await uploadToStorage(file, 'products'));
+    }
+    data.images = imageUrls.slice(0, 6);
+    data.image = imageUrls[0] || 'https://via.placeholder.com/300';
     if(editingId) await db.collection('products').doc(editingId).set(data, { merge: true });
     else { data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('products').add(data); }
     closeAllDrawers(); showToast("সফলভাবে সংরক্ষিত হয়েছে!");
