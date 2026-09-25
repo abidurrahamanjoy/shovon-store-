@@ -288,8 +288,8 @@
 <div id="toast" class="toast">Message</div>
 <div class="overlay" id="overlay"></div>
 
-<!-- SIDE MENU -->
-<div class="drawer left" id="menuDrawer">
+<!-- SIDE MENU (গ্লাস এফেক্ট যুক্ত করা হয়েছে) -->
+<div class="drawer left" id="menuDrawer" style="background: rgba(255, 255, 255, 0.70); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); border-right: 1px solid rgba(255,255,255,0.4);">
   <div class="drawer-head"><h2>মেনু</h2><button class="drawer-close" onclick="closeAllDrawers()">&times;</button></div>
   <div class="drawer-body">
     <a href="#" class="menu-link" onclick="closeAllDrawers(); window.scrollTo(0,0); return false;"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> হোম</a>
@@ -327,11 +327,11 @@
   </div>
 </div>
 
-<!-- CART / CHECKOUT DRAWER -->
-<div class="drawer" id="cartDrawer">
+<!-- CART / CHECKOUT DRAWER (গ্লাস এফেক্ট এবং স্পেস এডজাস্ট করা হয়েছে) -->
+<div class="drawer" id="cartDrawer" style="background: rgba(255, 255, 255, 0.70); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); border-left: 1px solid rgba(255,255,255,0.4);">
   <div class="drawer-head"><h2>আপনার কার্ট</h2><button class="drawer-close" onclick="closeAllDrawers()">&times;</button></div>
   <div class="drawer-body" id="cartItems"></div>
-  <div class="drawer-foot" style="max-height:75vh; overflow-y:auto;">
+  <div class="drawer-foot" style="max-height: 48vh; overflow-y: auto; background: transparent; padding-bottom: 30px;">
     <div class="field"><label>জেলা নির্বাচন করুন</label><select id="custDistrict"></select></div>
     <div class="summary-row"><span>পণ্যের মূল্য</span><span id="sumItems">৳ ০</span></div>
     <div class="summary-row"><span>ডেলিভারি চার্জ</span><span id="sumDelivery">৳ ০</span></div>
@@ -415,7 +415,7 @@
   <div class="drawer-head"><h2 id="adminDrawerTitle">এডমিন লগইন</h2><button class="drawer-close" onclick="closeAllDrawers()">&times;</button></div>
   <div class="drawer-body" id="adminLoginFormSection">
     <div class="field"><label>ইমেইল</label><input type="email" id="loginEmail"></div>
-    <div class="field"><label>পাসওয়ার্ড</label><input type="password" id="loginPassword"></div>
+    <div class="field"><label>পাসওয়ার্ড</label><input type="text" id="loginPassword" style="-webkit-text-security: disc; text-security: disc;"></div>
     <p id="loginError" style="color:#C0392B; display:none; font-size: 0.85rem; margin-bottom: 10px;">ভুল তথ্য দেওয়া হয়েছে!</p>
     <button class="btn-block" id="loginSubmitBtn" style="margin-top: 6px;">লগইন করুন</button>
     <span class="link-small" id="forgotPassLink">পাসওয়ার্ড ভুলে গেছেন?</span>
@@ -497,10 +497,10 @@
     <button class="modal-close-x" onclick="closeAuthModal()">&times;</button>
     <h2>লগইন / একাউন্ট তৈরি করুন</h2>
     <p style="font-size:0.82rem; color:var(--ink-soft); margin-bottom:14px;">ফোন নম্বর দিয়ে লগইন করুন — নতুন হলে একাউন্ট অটো তৈরি হবে।</p>
-    <div class="field"><input type="tel" id="modalAuthPhone" placeholder="মোবাইল নম্বর (01XXXXXXXXX)"></div>
-    <div class="field"><input type="password" id="modalAuthPassword" placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)"></div>
+    <div class="field"><input type="text" id="modalAuthPassword" placeholder="সিক্রেট পিন বা পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)" style="-webkit-text-security: disc; text-security: disc;"></div>
     <p id="modalAuthError" style="color:#C0392B; display:none; font-size:0.8rem; margin-bottom:10px;"></p>
     <button class="btn-block" id="modalAuthSubmitBtn" style="margin-bottom:0;">লগইন / একাউন্ট তৈরি করুন</button>
+    <p style="font-size:0.75rem; color:var(--ink-soft); margin-top:12px; text-align:center;">✅ আপনার তথ্য শুধুমাত্র অর্ডার প্রসেসিংয়ের জন্য সুরক্ষিতভাবে ব্যবহৃত হবে।</p>
   </div>
 </div>
 
@@ -1105,7 +1105,7 @@ document.getElementById('checkoutBtn').addEventListener('click', async () => {
     ['custTrxId','custPaidAmount'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('orderResultBody').innerHTML = status === 'confirmed'
       ? `<div class="order-card"><span class="status-badge confirmed">অর্ডার নিশ্চিত হয়েছে</span><p style="margin-top:12px;">আপনার অর্ডার আইডি: <b>${ref.id}</b></p><p style="margin-top:6px; font-size:0.85rem; color:var(--ink-soft);">"অ্যাকাউন্ট" থেকে সবসময় স্ট্যাটাস দেখতে পারবেন। ডেলিভারি সময়: ${SITE_SETTINGS.deliveryTimeText}</p></div>`
-      : `<div class="order-card"><span class="status-badge payment_mismatch">অর্ডার পেন্ডিং</span><p style="margin-top:12px;">আপনার প্রদত্ত পরিমাণ প্রত্যাশিত মোট টাকার সাথে মিলছে না। মালিক শীঘ্রই যোগাযোগ করবেন। অর্ডার আইডি: <b>${ref.id}</b></p></div>`;
+      : `<div class="order-card"><span class="status-badge payment_mismatch">অর্ডার পেন্ডিং</span><p style="margin-top:12px;">আপনার প্রদত্ত পরিমাণ প্রত্যাশিত মোট টাকার সাথে মিলছে অ্যাকাউন্টের সাথে মিলছে না। মালিক শীঘ্রই যোগাযোগ করবেন। অর্ডার আইডি: <b>${ref.id}</b></p></div>`;
     openDrawer('orderResultDrawer');
   } catch(e) { alert("অর্ডার সম্পন্ন করতে সমস্যা হয়েছে: " + e.message); }
   btn.textContent = "অর্ডার নিশ্চিত করুন"; validateCheckoutForm();
