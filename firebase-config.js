@@ -3,8 +3,8 @@
    ============================================================ */
 
 const STORE_CONFIG = {
-  storeName: "শোভন স্টোর",
-  whatsappNumber: "8801779088009",
+  storeName: "আমার শপ",
+  whatsappNumber: "8801786689656",
   currency: "৳",
   adminUID: "h8Dz1CPX4ghH3VLSr7XWZU0lvJC2",
 
@@ -19,8 +19,8 @@ const STORE_CONFIG = {
         Signing mode: "Unsigned" করে সেভ করুন — সেই preset-এর নাম নিচে বসান।
      এই preset-টা ক্লায়েন্ট থেকে নিরাপদে আপলোডের জন্য ডিজাইন করা —
      কোনো গোপন key এখানে দরকার হয় না। */
-  cloudinaryCloudName: "kzrmwfn8",
-  cloudinaryUploadPreset: "e-commerce 1",
+  cloudinaryCloudName: "",
+  cloudinaryUploadPreset: "",
 
   /* bKash Merchant API (ঐচ্ছিক) — খালি রাখলে সাইট manual TrxID-verification
      মোডে চলবে (এটাই এখন বেস্ট ফ্রি অপশন)। বিজনেস bKash Merchant/PGW
