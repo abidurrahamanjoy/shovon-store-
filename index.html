@@ -75,17 +75,17 @@
 
   .wrap-inner { padding: 0 18px; }
 
-  .hero { position: relative; border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 26px; min-height: 190px; box-shadow: var(--shadow-card); }
+  .hero { position: relative; border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 26px; min-height: 190px; box-shadow: var(--shadow-card); background: var(--accent); }
   .hero-slides { position: relative; width:100%; height:100%; min-height: 190px; }
   .hero-slide { position: absolute; inset:0; background-size: cover; background-position: center; opacity:0; transition: opacity 1s ease; }
   .hero-slide.active { opacity:1; }
   .hero-content { position: absolute; inset:0; z-index: 2; color: white; display:flex; align-items:center; padding: 26px; }
-  .hero-content-inner { max-width: 78%; }
+  .hero-content-inner { max-width: 78%; background: rgba(20,17,12,0.38); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: var(--radius-md); padding: 14px 16px; }
   .hero-dots { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:3; }
   .hero-dots span { width:6px; height:6px; border-radius:50%; background: rgba(255,255,255,0.5); transition: all .2s; }
   .hero-dots span.active { background:#fff; width:16px; border-radius:4px; }
-  .hero-content h1 { font-size: 1.35rem; font-weight: 700; line-height: 1.25; margin-bottom: 8px; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,0.5); }
-  .hero-content p { font-size: 0.85rem; margin-bottom: 16px; opacity: 0.95; text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
+  .hero-content h1 { font-size: 1.35rem; font-weight: 700; line-height: 1.25; margin-bottom: 8px; color: #fff; }
+  .hero-content p { font-size: 0.85rem; margin-bottom: 16px; opacity: 0.95; }
   .hero-btn { background: var(--accent); color: white; padding: 11px 22px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; display: inline-block; box-shadow: 0 6px 16px rgba(196,112,46,0.45); }
 
   .categories { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 26px; scrollbar-width: none; }
@@ -967,7 +967,7 @@ function renderCategories() {
     <div class="cat-item ${c === activeCategory ? 'active' : ''}" data-cat="${c}">
       <div class="cat-img-outer">
         <div class="cat-img"><img src="${CATEGORY_IMAGES[c] || catImages[c] || 'https://images.unsplash.com/photo-1518600506278-4e8ef466b810?w=150'}" alt="${c}" loading="lazy"></div>
-        ${isAdmin ? `<label class="cat-edit-btn" onclick="event.stopPropagation()">✎<input type="file" accept="image/*" class="cat-file-input" style="display:none;"></label>` : ''}
+        ${isAdmin ? `<label class="cat-edit-btn" onclick="event.stopPropagation()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg><input type="file" accept="image/*" class="cat-file-input" style="display:none;"></label>` : ''}
         ${isAdmin && CATEGORY_IMAGES[c] ? `<button class="cat-del-btn" onclick="event.stopPropagation(); resetCategoryImage('${c}')">×</button>` : ''}
       </div>
       <span>${c}</span>
