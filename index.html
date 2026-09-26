@@ -79,14 +79,13 @@
   .hero-slides { position: relative; width:100%; height:100%; min-height: 190px; }
   .hero-slide { position: absolute; inset:0; background-size: cover; background-position: center; opacity:0; transition: opacity 1s ease; }
   .hero-slide.active { opacity:1; }
-  .hero-shadow { position: absolute; inset: 0; z-index: 1; pointer-events:none; }
   .hero-content { position: absolute; inset:0; z-index: 2; color: white; display:flex; align-items:center; padding: 26px; }
   .hero-content-inner { max-width: 78%; }
   .hero-dots { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:3; }
   .hero-dots span { width:6px; height:6px; border-radius:50%; background: rgba(255,255,255,0.5); transition: all .2s; }
   .hero-dots span.active { background:#fff; width:16px; border-radius:4px; }
-  .hero-content h1 { font-size: 1.35rem; font-weight: 700; line-height: 1.25; margin-bottom: 8px; color: #fff; }
-  .hero-content p { font-size: 0.85rem; margin-bottom: 16px; opacity: 0.9; }
+  .hero-content h1 { font-size: 1.35rem; font-weight: 700; line-height: 1.25; margin-bottom: 8px; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,0.5); }
+  .hero-content p { font-size: 0.85rem; margin-bottom: 16px; opacity: 0.95; text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
   .hero-btn { background: var(--accent); color: white; padding: 11px 22px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; display: inline-block; box-shadow: 0 6px 16px rgba(196,112,46,0.45); }
 
   .categories { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 26px; scrollbar-width: none; }
@@ -271,7 +270,6 @@
 <div class="wrap wrap-inner">
   <div class="hero" id="heroBox">
     <div class="hero-slides" id="heroSlides"></div>
-    <div class="hero-shadow" id="heroShadow"></div>
     <div class="hero-content">
       <div class="hero-content-inner">
         <h1>নতুন সিজনের স্টেশনারী কালেকশন</h1>
@@ -479,8 +477,6 @@
       <span style="font-size: 0.85rem; color: var(--accent-dark); font-weight:600;">+ নতুন হিরো ছবি যোগ করুন</span>
       <input type="file" accept="image/*" id="heroInput" style="display:none;">
     </label>
-    <div class="field"><label>ছায়া (Shadow) রঙ</label><input type="color" id="setHeroShadowColor" style="height:44px; padding:4px;"></div>
-    <div class="field"><label>ছায়ার গাঢ়ত্ব (%)</label><input type="range" id="setHeroShadowOpacity" min="0" max="90" style="width:100%;"></div>
 
     <hr style="border:none; border-top:1px solid var(--line); margin:18px 0;">
     <p style="font-weight:700; margin-bottom:12px;">ওয়েবসাইটের ব্যাকগ্রাউন্ড</p>
@@ -606,8 +602,6 @@ let SITE_SETTINGS = {
     termsText: "১. অর্ডার করার আগে পণ্যের বিবরণ ভালোভাবে দেখে নিন।\n২. পেমেন্ট নিশ্চিত হওয়ার পরই অর্ডার প্রসেস করা হয়।\n৩. ভুল/কম তথ্য দিয়ে পেমেন্ট করলে অর্ডার পেন্ডিং থাকবে।\n৪. ডেলিভারির পর পণ্য ফেরত নেওয়া হয় না, ত্রুটিপূর্ণ পণ্য ছাড়া।",
     bkashNumber: "01779088009",
     heroImages: ["https://images.unsplash.com/photo-1522836924445-4478bdeb828e?q=80&w=900&auto=format&fit=crop"],
-    heroOverlayColor: "#14110C",
-    heroOverlayOpacity: 55,
     bgType: "solid",
     bgColor: "#FFFFFF"
 };
@@ -739,9 +733,6 @@ function renderHeroCarousel() {
   const images = (SITE_SETTINGS.heroImages && SITE_SETTINGS.heroImages.length) ? SITE_SETTINGS.heroImages : ['https://images.unsplash.com/photo-1522836924445-4478bdeb828e?q=80&w=900&auto=format&fit=crop'];
   document.getElementById('heroSlides').innerHTML = images.map((url,i) => `<div class="hero-slide ${i===0?'active':''}" style="background-image:url('${url}')"></div>`).join('');
   document.getElementById('heroDots').innerHTML = images.length > 1 ? images.map((_,i)=>`<span class="${i===0?'active':''}"></span>`).join('') : '';
-  const op = (Number(SITE_SETTINGS.heroOverlayOpacity ?? 55) / 100);
-  const col = SITE_SETTINGS.heroOverlayColor || '#14110C';
-  document.getElementById('heroShadow').style.background = op > 0 ? `linear-gradient(115deg, ${hexToRgba(col, op)} 10%, ${hexToRgba(col, op*0.2)} 75%)` : 'none';
   heroSlideIndex = 0;
   if (heroTimer) clearInterval(heroTimer);
   if (images.length > 1) heroTimer = setInterval(() => {
@@ -779,8 +770,6 @@ auth.onAuthStateChanged(async user => {
       if(SITE_SETTINGS.logoUrl) { document.getElementById('logoPreview').src = SITE_SETTINGS.logoUrl; document.getElementById('logoPreview').style.display = 'block'; currentLogoUrl = SITE_SETTINGS.logoUrl; }
       draftHeroImages = [...(SITE_SETTINGS.heroImages || [])];
       renderHeroImagesList();
-      document.getElementById('setHeroShadowColor').value = SITE_SETTINGS.heroOverlayColor || '#14110C';
-      document.getElementById('setHeroShadowOpacity').value = SITE_SETTINGS.heroOverlayOpacity ?? 55;
       document.getElementById('setBgType').value = SITE_SETTINGS.bgType || 'solid';
       document.getElementById('setBgColor').value = SITE_SETTINGS.bgColor || '#FFFFFF';
       document.getElementById('setBgColorField').style.display = (SITE_SETTINGS.bgType||'solid') === 'solid' ? 'block' : 'none';
@@ -1309,8 +1298,8 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
         storeName: document.getElementById('setStoreName').value, whatsappNumber: waNumClean,
         currency: SITE_SETTINGS.currency || STORE_CONFIG.currency, logoUrl: logoUrlToSave,
         heroImages: draftHeroImages.length ? draftHeroImages : [SITE_SETTINGS.heroImages[0] || ''],
-        heroOverlayColor: document.getElementById('setHeroShadowColor').value,
-        heroOverlayOpacity: Number(document.getElementById('setHeroShadowOpacity').value) || 0,
+        heroOverlayColor: firebase.firestore.FieldValue.delete(),
+        heroOverlayOpacity: firebase.firestore.FieldValue.delete(),
         bgType: document.getElementById('setBgType').value,
         bgColor: document.getElementById('setBgColor').value,
         ownerDistrict: document.getElementById('setOwnerDistrict').value,
