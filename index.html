@@ -7,15 +7,29 @@
 
 <meta id="metaDesc" name="description" content="আমার শপ থেকে সেরা মানের স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন — bKash পেমেন্ট, দ্রুত ডেলিভারি, সারাদেশে।">
 <meta name="robots" content="index, follow">
+<link id="canonicalLink" rel="canonical" href="https://shovon-store.web.app/">
 <meta id="ogTitle" property="og:type" content="website">
+<meta property="og:site_name" content="আমার শপ">
+<meta property="og:locale" content="bn_BD">
+<meta id="ogUrlTag" property="og:url" content="https://shovon-store.web.app/">
 <meta id="ogTitleTag" property="og:title" content="আমার শপ | স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য">
 <meta id="ogDescTag" property="og:description" content="সেরা মানের স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য, bKash পেমেন্টে, সারাদেশে ডেলিভারি।">
-<meta id="ogImageTag" property="og:image" content="icons/icon-512.png">
+<meta id="ogImageTag" property="og:image" content="https://shovon-store.web.app/icon-512.png">
 <meta name="theme-color" content="#C4702E">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
 <script id="productJsonLd" type="application/ld+json"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "OnlineStore",
+  "name": "আমার শপ",
+  "url": "https://shovon-store.web.app/",
+  "image": "https://shovon-store.web.app/icon-512.png",
+  "description": "আমার শপ থেকে সেরা মানের স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন — bKash পেমেন্ট, দ্রুত ডেলিভারি, সারাদেশে।"
+}
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -632,9 +646,17 @@ async function uploadToStorage(file, folder) {
   fd.append('file', file);
   fd.append('upload_preset', STORE_CONFIG.cloudinaryUploadPreset);
   fd.append('folder', `shuvon-store/${folder}`);
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${STORE_CONFIG.cloudinaryCloudName}/image/upload`, { method: 'POST', body: fd });
-  const json = await res.json();
-  if (!json.secure_url) throw new Error(json.error ? json.error.message : 'আপলোড ব্যর্থ হয়েছে');
+  let res, json;
+  try {
+    res = await fetch(`https://api.cloudinary.com/v1_1/${STORE_CONFIG.cloudinaryCloudName}/image/upload`, { method: 'POST', body: fd });
+  } catch (netErr) {
+    throw new Error('Cloudinary সার্ভারে পৌঁছানো যায়নি (নেটওয়ার্ক/CORS সমস্যা) — cloud name ঠিক আছে কিনা দেখুন: ' + STORE_CONFIG.cloudinaryCloudName);
+  }
+  try { json = await res.json(); } catch (parseErr) { throw new Error(`Cloudinary থেকে অপ্রত্যাশিত উত্তর (HTTP ${res.status})`); }
+  if (!res.ok || !json.secure_url) {
+    const msg = json && json.error ? json.error.message : `HTTP ${res.status}`;
+    throw new Error(`আপলোড ব্যর্থ (preset: "${STORE_CONFIG.cloudinaryUploadPreset}"): ${msg}`);
+  }
   return json.secure_url;
 }
 function escapeHtml(str) { return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
@@ -1015,9 +1037,9 @@ function renderProducts() {
   }
 
   document.getElementById('productGrid').innerHTML = list.map(p => `
-    <div class="card" onclick="openFullview('${p.id}')">
+    <a class="card" href="/product/${p.id}/${slugify(p.name)}" onclick="event.preventDefault(); openFullview('${p.id}')">
       <div class="card-img-wrap">
-        <button class="wish-btn ${wishlist[p.id] ? 'active' : ''}" onclick="event.stopPropagation(); toggleWishlist('${p.id}')" aria-label="প্রিয়">
+        <button class="wish-btn ${wishlist[p.id] ? 'active' : ''}" onclick="event.stopPropagation(); event.preventDefault(); toggleWishlist('${p.id}')" aria-label="প্রিয়">
           <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
         ${p.stock !== 'স্টকে আছে' ? `<span class="stock-tag">${escapeHtml(p.stock)}</span>` : ''}
@@ -1026,9 +1048,9 @@ function renderProducts() {
       </div>
       <div class="card-title">${escapeHtml(p.name)}</div>
       <div class="card-price">৳${p.price}</div>
-      <button class="add-cart-btn" onclick="event.stopPropagation(); addToCart('${p.id}')" ${p.stock === 'স্টক নেই' ? 'disabled' : ''}>${p.stock === 'স্টক নেই' ? 'স্টক নেই' : 'কার্টে যোগ করুন'}</button>
-      ${isAdmin ? `<div class="admin-actions"><button class="btn-admin" onclick="event.stopPropagation(); openProductForm('${p.id}')">এডিট</button><button class="btn-admin danger" onclick="event.stopPropagation(); deleteProduct('${p.id}')">ডিলিট</button></div>` : ''}
-    </div>`).join('');
+      <button class="add-cart-btn" onclick="event.stopPropagation(); event.preventDefault(); addToCart('${p.id}')" ${p.stock === 'স্টক নেই' ? 'disabled' : ''}>${p.stock === 'স্টক নেই' ? 'স্টক নেই' : 'কার্টে যোগ করুন'}</button>
+      ${isAdmin ? `<div class="admin-actions"><button class="btn-admin" onclick="event.stopPropagation(); event.preventDefault(); openProductForm('${p.id}')">এডিট</button><button class="btn-admin danger" onclick="event.stopPropagation(); event.preventDefault(); deleteProduct('${p.id}')">ডিলিট</button></div>` : ''}
+    </a>`).join('');
 }
 
 window.toggleWishlist = (id) => {
@@ -1068,6 +1090,9 @@ window.openFullview = (id, skipHistory) => {
   document.getElementById('ogTitleTag').setAttribute('content', p.name);
   document.getElementById('ogDescTag').setAttribute('content', (p.description || p.name).slice(0,155));
   document.getElementById('ogImageTag').setAttribute('content', p.image);
+  const productUrlForMeta = `https://shovon-store.web.app/product/${id}/${slugify(p.name)}`;
+  document.getElementById('canonicalLink').setAttribute('href', productUrlForMeta);
+  document.getElementById('ogUrlTag').setAttribute('content', productUrlForMeta);
   document.getElementById('productJsonLd').textContent = JSON.stringify({
     "@context":"https://schema.org","@type":"Product","name":p.name,"image":p.image,
     "description":p.description || p.name,
@@ -1082,17 +1107,26 @@ window.closeFullview = () => {
   document.getElementById('pageTitle').textContent = SITE_SETTINGS.storeName + " | স্টোর";
   document.getElementById('metaDesc').setAttribute('content', "শোভন স্টোর থেকে সেরা মানের স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন — bKash পেমেন্ট, দ্রুত ডেলিভারি, সারাদেশে।");
   document.getElementById('productJsonLd').textContent = '';
-  if (location.search.includes('p=')) history.pushState({}, '', location.pathname);
+  document.getElementById('canonicalLink').setAttribute('href', 'https://shovon-store.web.app/');
+  document.getElementById('ogUrlTag').setAttribute('content', 'https://shovon-store.web.app/');
+  document.getElementById('ogImageTag').setAttribute('content', 'https://shovon-store.web.app/icon-512.png');
+  if (getProductIdFromLocation()) history.pushState({}, '', '/');
 };
-function handleDeepLinkOnLoad() {
+// পুরনো শেয়ার-লিংক (?p=id) এবং নতুন পাথ-স্টাইল লিংক (/product/id/slug) — দুটোই সাপোর্ট করে
+function getProductIdFromLocation() {
   const params = new URLSearchParams(location.search);
-  const pid = params.get('p');
+  if (params.get('p')) return params.get('p');
+  const m = location.pathname.match(/^\/product\/([^/]+)/);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+function handleDeepLinkOnLoad() {
+  const pid = getProductIdFromLocation();
   if (pid && PRODUCTS.find(x => x.id === pid)) openFullview(pid, true);
 }
-window.addEventListener('popstate', () => { const params = new URLSearchParams(location.search); const pid = params.get('p'); if (pid) openFullview(pid, true); else closeFullview(); });
+window.addEventListener('popstate', () => { const pid = getProductIdFromLocation(); if (pid) openFullview(pid, true); else closeFullview(); });
 
 function openChatAboutProduct(p) {
-  const productUrl = `${window.location.origin}${window.location.pathname}?p=${p.id}`;
+  const productUrl = `${window.location.origin}/product/${p.id}/${slugify(p.name)}`;
   const prefillMsg = `"${p.name}" সম্পর্কে জানতে চাই — ${productUrl}`;
   const goToChat = () => { closeFullview(); openDrawer('chatDrawer'); startChat(); document.getElementById('chatInput').value = prefillMsg; document.getElementById('chatInput').focus(); };
   if (isCustomer && auth.currentUser) goToChat();
@@ -1292,12 +1326,14 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   try {
     let logoUrlToSave = currentLogoUrl;
     if(pendingLogoFile) logoUrlToSave = await uploadToStorage(pendingLogoFile, 'store');
-    const waNumClean = document.getElementById('setWaNum').value.replace(/[^0-9]/g,'');
+    let waNumClean = document.getElementById('setWaNum').value.replace(/[^0-9]/g,'');
+    if (/^01[3-9][0-9]{8}$/.test(waNumClean)) waNumClean = '88' + waNumClean; // 01XXXXXXXXX -> 8801XXXXXXXXX
     const bkashClean = document.getElementById('setBkashNumber').value.replace(/[^0-9]/g,'');
+    const heroImagesClean = (draftHeroImages.length ? draftHeroImages : (SITE_SETTINGS.heroImages || [])).filter(Boolean);
     await db.collection('settings').doc('store_info').set({
         storeName: document.getElementById('setStoreName').value, whatsappNumber: waNumClean,
         currency: SITE_SETTINGS.currency || STORE_CONFIG.currency, logoUrl: logoUrlToSave,
-        heroImages: draftHeroImages.length ? draftHeroImages : [SITE_SETTINGS.heroImages[0] || ''],
+        heroImages: heroImagesClean,
         heroOverlayColor: firebase.firestore.FieldValue.delete(),
         heroOverlayOpacity: firebase.firestore.FieldValue.delete(),
         bgType: document.getElementById('setBgType').value,
