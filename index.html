@@ -1185,7 +1185,7 @@ window.openFullview = (id, skipHistory) => {
     "description":p.description || p.name,
     "offers":{"@type":"Offer","priceCurrency":"BDT","price":p.price,"availability": p.stock==='স্টক নেই' ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"}
   });
-  if (!skipHistory) history.pushState({productId:id}, '', `/product/${id}/${slugify(p.name)}`);
+  if (!skipHistory) history.pushState({productId:id}, '', `?p=${id}`);
 };
 function slugify(s) { return encodeURIComponent(String(s||'').trim().replace(/\s+/g,'-')).slice(0,60); }
 window.closeFullview = () => {
@@ -1213,7 +1213,7 @@ function handleDeepLinkOnLoad() {
 window.addEventListener('popstate', () => { const pid = getProductIdFromLocation(); if (pid) openFullview(pid, true); else closeFullview(); });
 
 function openChatAboutProduct(p) {
-  const productUrl = `${window.location.origin}/product/${p.id}/${slugify(p.name)}`;
+  const productUrl = `${window.location.origin}/?p=${p.id}`;
   const prefillMsg = `"${p.name}" সম্পর্কে জানতে চাই — ${productUrl}`;
   const goToChat = () => { closeFullview(); openDrawer('chatDrawer'); startChat(); document.getElementById('chatInput').value = prefillMsg; document.getElementById('chatInput').focus(); };
   if (isCustomer && auth.currentUser) goToChat();
