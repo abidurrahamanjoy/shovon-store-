@@ -61,7 +61,10 @@
     body { padding-bottom: 0; }
     .wrap { max-width: 1180px; }
     header { padding: 22px 0; }
-    .hero { min-height: 260px; padding: 40px; }
+    /* পিসিতে হিরো ব্যানার লম্বা করার কোড */
+    .hero { min-height: 420px; padding: 40px; }
+    .hero-slides { min-height: 420px; }
+    
     .hero-content h1 { font-size: 2rem; }
     .hero-content p { font-size: 1rem; }
     .grid { grid-template-columns: repeat(4, 1fr); gap: 22px; }
@@ -558,11 +561,21 @@
   <div class="glass-card" style="position:relative;">
     <button class="modal-close-x" onclick="closeAuthModal()">&times;</button>
     <h2>লগইন / একাউন্ট তৈরি করুন</h2>
-    <p style="font-size:0.82rem; color:var(--ink-soft); margin-bottom:14px;">ফোন নম্বর দিয়ে লগইন করুন — নতুন হলে একাউন্ট অটো তৈরি হবে।</p>
+    <p style="font-size:0.82rem; color:var(--ink-soft); margin-bottom:14px;">ফোন নম্বর দিয়ে লগইন করুন — নতুন হলে একাউন্ট অটো তৈরি হবে。</p>
     <div class="field"><input type="tel" id="modalAuthPhone" placeholder="মোবাইল নম্বর (01XXXXXXXXX)"></div>
     <div class="field"><input type="password" id="modalAuthPassword" placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)"></div>
     <p id="modalAuthError" style="color:#C0392B; display:none; font-size:0.8rem; margin-bottom:10px;"></p>
     <button class="btn-block" id="modalAuthSubmitBtn" style="margin-bottom:0;">লগইন / একাউন্ট তৈরি করুন</button>
+  </div>
+</div>
+
+<!-- WELCOME POPUP (গ্লাস) -->
+<div class="modal-overlay" id="welcomeModalOverlay">
+  <div class="glass-card" style="text-align: center;">
+    <button class="modal-close-x" onclick="document.getElementById('welcomeModalOverlay').classList.remove('open')">&times;</button>
+    <h2 style="font-size: 1.6rem; color: var(--accent-dark); margin-bottom: 12px; font-weight: 700;">আসসালামু আলাইকুম!</h2>
+    <p style="font-size: 1rem; color: var(--ink); margin-bottom: 22px;">আমাদের "আমার শপ"-এ আপনাকে স্বাগতম। আশা করি আপনার কেনাকাটা আনন্দদায়ক হবে।</p>
+    <button class="btn-block" onclick="document.getElementById('welcomeModalOverlay').classList.remove('open')">ধন্যবাদ</button>
   </div>
 </div>
 
@@ -677,7 +690,17 @@ function openDrawer(id) { closeAllDrawers(); document.getElementById(id).classLi
 overlay.addEventListener('click', closeAllDrawers);
 
 document.getElementById('menuOpenBtn').addEventListener('click', () => openDrawer('menuDrawer'));
-document.getElementById('menuAccountLink').addEventListener('click', (e) => { e.preventDefault(); openDrawer('accountDrawer'); });
+
+// এডমিন একাউন্ট ও সাধারন একাউন্ট এর মেনু লিংক লজিক
+document.getElementById('menuAccountLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  if (isAdmin) {
+    openDrawer('adminLoginDrawer');
+  } else {
+    openDrawer('accountDrawer');
+  }
+});
+
 document.getElementById('enableNotifBtn').addEventListener('click', (e) => requestNotifPermission(e.target));
 document.getElementById('enableAdminNotifBtn').addEventListener('click', (e) => requestNotifPermission(e.target));
 document.getElementById('forgotPassLink').addEventListener('click', () => {
@@ -730,6 +753,24 @@ document.getElementById('sortSelect').addEventListener('change', (e) => { sortMo
 function setActiveNav(id) { document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 document.getElementById('navHomeBtn').addEventListener('click', (e) => { e.preventDefault(); goHomeView(); window.scrollTo({top:0, behavior:'smooth'}); setActiveNav('navHomeBtn'); });
 document.getElementById('navFavBtn').addEventListener('click', (e) => { e.preventDefault(); setActiveNav('navFavBtn'); showFavorites(); });
+
+// ইনবক্স বাটন লজিক (নতুন)
+document.getElementById('navInboxBtn').addEventListener('click', (e) => {
+  e.preventDefault();
+  setActiveNav('navInboxBtn');
+  if (isAdmin) {
+    openDrawer('adminInboxDrawer');
+    loadAdminInbox();
+  } else if (isCustomer && auth.currentUser) {
+    openDrawer('chatDrawer');
+    startChat();
+  } else {
+    openAuthModal(() => {
+      openDrawer('chatDrawer');
+      startChat();
+    });
+  }
+});
 
 function goHomeView() { activeView = 'home'; renderProducts(); }
 function showFavorites() { activeView = 'favorites'; document.getElementById('products').scrollIntoView(); renderProducts(); }
@@ -792,9 +833,26 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-/* ---------------- গোপন এডমিন লিংক: /admin (বা #admin) ---------------- */
+/* ---------------- পপআপ এবং ড্যাশবোর্ড লজিক ---------------- */
+window.addEventListener('load', () => { 
+  if (isAdminUrl()) setTimeout(() => openDrawer('adminLoginDrawer'), 400); 
+
+  // Welcome Popup Logic (দিনে একবার)
+  const today = new Date().toISOString().slice(0, 10);
+  if (localStorage.getItem('shuvon_welcome_shown') !== today) {
+    setTimeout(() => {
+      document.getElementById('welcomeModalOverlay').classList.add('open');
+      localStorage.setItem('shuvon_welcome_shown', today);
+    }, 1000); // পেজ লোড হওয়ার ১ সেকেন্ড পর আসবে
+  }
+});
+
+// ওয়েলকাম পপ-আপের বাইরে ক্লিক করলে বন্ধ হওয়ার লজিক
+document.getElementById('welcomeModalOverlay').addEventListener('click', (e) => { 
+  if (e.target.id === 'welcomeModalOverlay') e.target.classList.remove('open'); 
+});
+
 function isAdminUrl() { return /\/admin\/?$/i.test(location.pathname) || location.hash.toLowerCase() === '#admin'; }
-window.addEventListener('load', () => { if (isAdminUrl()) setTimeout(() => openDrawer('adminLoginDrawer'), 400); });
 
 /* ---------------- Auth ---------------- */
 auth.onAuthStateChanged(async user => {
@@ -1349,16 +1407,27 @@ document.getElementById('heroInput').addEventListener('change', async (e) => {
 document.getElementById('setBgType').addEventListener('change', (e) => {
   document.getElementById('setBgColorField').style.display = e.target.value === 'solid' ? 'block' : 'none';
 });
+
+// সেটিংস সেভ করার লজিক (বিকাশ নম্বর ভ্যালিডেশন সহ)
 document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
   const btn = document.getElementById('saveSettingsBtn');
   btn.disabled = true; btn.textContent = "সংরক্ষণ হচ্ছে...";
   try {
-    let logoUrlToSave = currentLogoUrl;
-    if(pendingLogoFile) logoUrlToSave = await uploadToStorage(pendingLogoFile, 'store');
     let waNumClean = document.getElementById('setWaNum').value.replace(/[^0-9]/g,'');
     if (/^01[3-9][0-9]{8}$/.test(waNumClean)) waNumClean = '88' + waNumClean; // 01XXXXXXXXX -> 8801XXXXXXXXX
+    
     const bkashClean = document.getElementById('setBkashNumber').value.replace(/[^0-9]/g,'');
+    if(!/^01[3-9][0-9]{8}$/.test(bkashClean)) {
+       alert("bKash নম্বর সঠিক নয়! (যেমন: 017XXXXXXXX)");
+       btn.disabled = false; btn.textContent = "সেটিংস সংরক্ষণ করুন";
+       return;
+    }
+
+    let logoUrlToSave = currentLogoUrl;
+    if(pendingLogoFile) logoUrlToSave = await uploadToStorage(pendingLogoFile, 'store');
+    
     const heroImagesClean = (draftHeroImages.length ? draftHeroImages : (SITE_SETTINGS.heroImages || [])).filter(Boolean);
+    
     await db.collection('settings').doc('store_info').set({
         storeName: document.getElementById('setStoreName').value, whatsappNumber: waNumClean,
         currency: SITE_SETTINGS.currency || STORE_CONFIG.currency, logoUrl: logoUrlToSave,
@@ -1373,10 +1442,12 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
         deliveryTimeText: document.getElementById('setDeliveryTime').value,
         termsText: document.getElementById('setTerms').value, bkashNumber: bkashClean
     }, {merge: true});
+    
     closeAllDrawers(); showToast("সেটিংস আপডেট করা হয়েছে");
   } catch(e) { alert("সংরক্ষণে ত্রুটি হয়েছে: " + e.message); }
   btn.disabled = false; btn.textContent = "সেটিংস সংরক্ষণ করুন";
 });
+
 document.getElementById('saveProductBtn').addEventListener('click', async () => {
   const btn = document.getElementById('saveProductBtn');
   const data = {
