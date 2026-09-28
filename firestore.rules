@@ -140,7 +140,7 @@ function validNewOrder() {
       "customerUid","customerName","customerPhone","customerAddress","customerDistrict",
       "items","itemsTotal","deliveryCharge","grandTotal",
       "paymentMethod","paymentTrxId","paymentAmountEntered",
-      "status","trackingUrl","createdAt"
+      "status","trackingUrl","statusUpdatedAt","createdAt"
     ])
     && request.auth != null
     && request.resource.data.customerUid == request.auth.uid
@@ -153,25 +153,51 @@ function validNewOrder() {
     && request.resource.data.customerDistrict is string
     && request.resource.data.customerDistrict.size() > 0 && request.resource.data.customerDistrict.size() <= 60
     && validOrderItems()
-    && request.resource.data.itemsTotal is number && request.resource.data.itemsTotal >= 0
-    && request.resource.data.deliveryCharge is number && request.resource.data.deliveryCharge >= 0
-    && request.resource.data.grandTotal is number && request.resource.data.grandTotal >= 0
+    && request.resource.data.itemsTotal is number && request.resource.data.itemsTotal > 0
+    && request.resource.data.deliveryCharge is number
+    && request.resource.data.deliveryCharge >= 0 && request.resource.data.deliveryCharge <= 5000
+    && request.resource.data.grandTotal is number
+    && request.resource.data.grandTotal > 0
+    && request.resource.data.grandTotal == request.resource.data.itemsTotal + request.resource.data.deliveryCharge
     && request.resource.data.paymentMethod is string
+    && request.resource.data.paymentMethod == "bKash"
     && request.resource.data.paymentTrxId is string
     && request.resource.data.paymentTrxId.size() > 0 && request.resource.data.paymentTrxId.size() <= 60
     && request.resource.data.paymentAmountEntered is number
     && request.resource.data.paymentAmountEntered > 0
-    && request.resource.data.status is string
-    && request.resource.data.status in ["confirmed","payment_mismatch"]
-    && request.resource.data.trackingUrl is string && request.resource.data.trackingUrl.size() <= 500
+    && request.resource.data.paymentAmountEntered <= 10000000
+    && request.resource.data.status == "pending_payment"
+    && request.resource.data.trackingUrl is string
+    && request.resource.data.trackingUrl.size() <= 500
+    && (request.resource.data.trackingUrl == "" || request.resource.data.trackingUrl.matches("^https://[^\\s]+$"))
+    && request.resource.data.statusUpdatedAt is timestamp
     && request.resource.data.createdAt is timestamp;
 }
 
+function validOrderAdminUpdate() {
+  return request.resource.data.diff(resource.data).affectedKeys()
+      .hasOnly(["status","trackingUrl","statusUpdatedAt"])
+    && request.resource.data.status is string
+    && request.resource.data.status in [
+      "pending_payment","confirmed","payment_mismatch",
+      "processing","shipped","delivered","cancelled"
+    ]
+    && request.resource.data.trackingUrl is string
+    && request.resource.data.trackingUrl.size() <= 500
+    && (request.resource.data.trackingUrl == "" || request.resource.data.trackingUrl.matches("^https://[^\\s]+$"))
+    && request.resource.data.statusUpdatedAt is timestamp;
+}
+
 match /orders/{orderId} {
-  allow get: if true;
+  // Orders contain personal information and payment details.
+  // Only the owner or the single configured admin may read them.
+  allow get: if isAdmin()
+    || (request.auth != null && resource.data.customerUid == request.auth.uid);
   allow list: if isAdmin() || (request.auth != null && resource.data.customerUid == request.auth.uid);
   allow create: if validNewOrder();
-  allow update: if isAdmin();
+  // The customer cannot edit an existing order. The admin can only change
+  // its status and tracking URL, preserving payment/order details.
+  allow update: if isAdmin() && validOrderAdminUpdate();
   allow delete: if isAdmin();
 }
 

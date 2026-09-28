@@ -6,6 +6,8 @@ const STORE_CONFIG = {
   storeName: "আমার শপ",
   whatsappNumber: "8801786689656",
   currency: "৳",
+  // Production/handover URL. Change this when the client uses a custom domain.
+  siteUrl: "", // Optional: set the production/custom-domain URL; blank = current hosting URL
   adminUID: "h8Dz1CPX4ghH3VLSr7XWZU0lvJC2",
 
   /* ছবি হোস্টিং — Cloudinary (ফ্রি, কোনো কার্ড লাগে না, আনলিমিটেডের কাছাকাছি

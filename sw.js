@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shuvon-store-v3'; // ভার্সন ৩ করা হয়েছে
+const CACHE_NAME = 'shuvon-store-v4'; // Cache version bumped after security/performance updates
 const APP_SHELL = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (e) => {
@@ -28,7 +28,17 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
+  // Configuration must refresh from the network after deployment, but still work offline.
+  if (url.pathname === '/firebase-config.js') {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res.ok) caches.open(CACHE_NAME).then(cache => cache.put(e.request, res.clone()));
+        return res;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('/index.html')))
+    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => { if (res.ok) caches.open(CACHE_NAME).then(cache => cache.put(e.request, res.clone())); return res; }).catch(() => caches.match('/index.html')))
   );
 });

@@ -8,6 +8,8 @@
 <meta id="metaDesc" name="description" content="আমার শপ থেকে সেরা মানের স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন — bKash পেমেন্ট, দ্রুত ডেলিভারি, সারাদেশে।">
 <meta name="robots" content="index, follow">
 <link id="canonicalLink" rel="canonical" href="https://shovon-store.web.app/">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="color-scheme" content="light">
 <meta id="ogTitle" property="og:type" content="website">
 <meta property="og:site_name" content="আমার শপ">
 <meta property="og:locale" content="bn_BD">
@@ -226,10 +228,9 @@
   .pay-box { background: var(--accent-soft); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px; font-size: 0.86rem; }
   .pay-box b { color: var(--accent-dark); }
   .status-badge { display:inline-block; padding:4px 12px; border-radius:999px; font-size:0.78rem; font-weight:700; }
-  .status-badge.confirmed { background: var(--success-soft); color: var(--success); }
-  .status-badge.payment_mismatch { background: var(--danger-soft); color: var(--danger); }
-  .status-badge.shipped, .status-badge.delivered { background: var(--success-soft); color: var(--success); }
-  .status-badge.cancelled { background: var(--danger-soft); color: var(--danger); }
+  .status-badge.pending_payment { background: var(--accent-soft); color: var(--accent-dark); }
+  .status-badge.confirmed, .status-badge.processing, .status-badge.shipped, .status-badge.delivered { background: var(--success-soft); color: var(--success); }
+  .status-badge.payment_mismatch, .status-badge.cancelled { background: var(--danger-soft); color: var(--danger); }
   .order-card { background: var(--sand); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px; }
   .profile-box { background: var(--sand); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 18px; }
   .notif-toggle { display:flex; align-items:center; justify-content:space-between; background: var(--sand); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; font-size: 0.85rem; font-weight:600; }
@@ -589,6 +590,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const CUSTOMER_EMAIL_DOMAIN = "@shuvon.customer";
+const SITE_URL = siteUrl();
 
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 
@@ -662,13 +664,22 @@ function requestNotifPermission(btn) {
   Notification.requestPermission().then(p => { if (btn) btn.textContent = p === 'granted' ? 'চালু আছে ✓' : 'অনুমতি দিন'; });
 }
 async function uploadToStorage(file, folder) {
+  const allowedTypes = new Set(['image/jpeg','image/png','image/webp','image/gif']);
+  if (!file || !allowedTypes.has(file.type)) {
+    throw new Error('শুধু JPG, PNG, WEBP বা GIF ছবি আপলোড করা যাবে।');
+  }
+  const maxBytes = 5 * 1024 * 1024;
+  if (file.size > maxBytes) {
+    throw new Error('ছবির সর্বোচ্চ সাইজ ৫ MB।');
+  }
   if (!STORE_CONFIG.cloudinaryCloudName || !STORE_CONFIG.cloudinaryUploadPreset) {
     throw new Error('Cloudinary সেটআপ করা হয়নি — firebase-config.js-এ cloudinaryCloudName ও cloudinaryUploadPreset বসান');
   }
   const fd = new FormData();
   fd.append('file', file);
   fd.append('upload_preset', STORE_CONFIG.cloudinaryUploadPreset);
-  fd.append('folder', `shuvon-store/${folder}`);
+  const safeFolder = String(folder || 'uploads').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40) || 'uploads';
+  fd.append('folder', `shuvon-store/${safeFolder}`);
   let res, json;
   try {
     res = await fetch(`https://api.cloudinary.com/v1_1/${STORE_CONFIG.cloudinaryCloudName}/image/upload`, { method: 'POST', body: fd });
@@ -676,13 +687,45 @@ async function uploadToStorage(file, folder) {
     throw new Error('Cloudinary সার্ভারে পৌঁছানো যায়নি (নেটওয়ার্ক/CORS সমস্যা) — cloud name ঠিক আছে কিনা দেখুন: ' + STORE_CONFIG.cloudinaryCloudName);
   }
   try { json = await res.json(); } catch (parseErr) { throw new Error(`Cloudinary থেকে অপ্রত্যাশিত উত্তর (HTTP ${res.status})`); }
-  if (!res.ok || !json.secure_url) {
+  if (!res.ok || !json.secure_url || json.resource_type !== 'image' || !String(json.secure_url).startsWith('https://')) {
     const msg = json && json.error ? json.error.message : `HTTP ${res.status}`;
     throw new Error(`আপলোড ব্যর্থ (preset: "${STORE_CONFIG.cloudinaryUploadPreset}"): ${msg}`);
   }
   return json.secure_url;
 }
-function escapeHtml(str) { return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function escapeHtml(str) { return String(str == null ? '' : str).replace(/[&<>\"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;' }[c])); }
+function safeHttpUrl(value, fallback = '') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  try {
+    const u = new URL(raw);
+    return u.protocol === 'https:' ? u.href : fallback;
+  } catch (_) { return fallback; }
+}
+function safeAttrUrl(value, fallback = '') {
+  return escapeHtml(safeHttpUrl(value, fallback));
+}
+function appBaseUrl() {
+  // Works on GitHub Pages subpaths (e.g. /joy/), Firebase Hosting root,
+  // and custom domains without assuming the site is hosted at '/'.
+  const path = location.pathname || '/';
+  const basePath = path.endsWith('/') ? path : path.slice(0, path.lastIndexOf('/') + 1);
+  return `${location.origin}${basePath}`.replace(/\/+$/, '');
+}
+function siteUrl() {
+  // Used for SEO/canonical URLs when a production URL is configured.
+  // If left empty, automatically use the current hosting location.
+  return String(STORE_CONFIG.siteUrl || appBaseUrl()).replace(/\/+$/, '');
+}
+function productAppUrl(id) {
+  // Query-string URLs work on GitHub Pages as well as Firebase Hosting.
+  // They avoid 404s when the app is hosted inside a repository subpath.
+  return `${appBaseUrl()}/?p=${encodeURIComponent(id)}`;
+}
+function productSeoUrl(id, name) {
+  return `${siteUrl()}/?p=${encodeURIComponent(id)}`;
+}
+
 
 const overlay = document.getElementById('overlay');
 function closeAllDrawers() { document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open')); overlay.classList.remove('open'); }
@@ -789,7 +832,18 @@ db.collection('settings').doc('store_info').onSnapshot(doc => {
     updateCartUI();
 });
 
+function updateSeoSiteUrl() {
+    const base = siteUrl();
+    const canonical = document.getElementById('canonicalLink');
+    const ogUrl = document.getElementById('ogUrlTag');
+    const ogImage = document.getElementById('ogImageTag');
+    if (canonical) canonical.href = base + '/';
+    if (ogUrl) ogUrl.content = base + '/';
+    if (ogImage && !SITE_SETTINGS.logoUrl) ogImage.content = base + '/icon-512.png';
+}
+
 function updateSiteInfoUI() {
+    updateSeoSiteUrl();
     document.getElementById('siteStoreName').textContent = SITE_SETTINGS.storeName;
     if (!currentViewProductId) document.title = SITE_SETTINGS.storeName + " | স্টোর";
     const cleanWaNum = SITE_SETTINGS.whatsappNumber.replace(/[^0-9]/g, '');
@@ -815,8 +869,8 @@ function applyBackground() {
 
 function renderHeroCarousel() {
   const validImages = (SITE_SETTINGS.heroImages || []).filter(Boolean);
-  const images = validImages.length ? validImages : ['https://images.unsplash.com/photo-1522836924445-4478bdeb828e?q=80&w=900&auto=format&fit=crop'];
-  document.getElementById('heroSlides').innerHTML = images.map((url,i) => `<div class="hero-slide ${i===0?'active':''}" style="background-image:url('${url}')"></div>`).join('');
+  const images = (validImages.length ? validImages : ['https://images.unsplash.com/photo-1522836924445-4478bdeb828e?q=80&w=900&auto=format&fit=crop']).map(u => safeHttpUrl(u)).filter(Boolean);
+  document.getElementById('heroSlides').innerHTML = images.map((url,i) => `<div class="hero-slide ${i===0?'active':''}" style="background-image:url('${escapeHtml(url)}')"></div>`).join('');
   document.getElementById('heroDots').innerHTML = images.length > 1 ? images.map((_,i)=>`<span class="${i===0?'active':''}"></span>`).join('') : '';
   heroSlideIndex = 0;
   if (heroTimer) clearInterval(heroTimer);
@@ -950,6 +1004,18 @@ document.getElementById('profSaveBtn').addEventListener('click', async () => {
 });
 
 let knownOrderStatuses = {};
+function orderStatusLabel(status) {
+  return ({
+    pending_payment: 'পেমেন্ট যাচাই বাকি',
+    confirmed: 'অর্ডার নিশ্চিত',
+    payment_mismatch: 'পেমেন্ট মিসম্যাচ',
+    processing: 'প্রসেসিং',
+    shipped: 'পাঠানো হয়েছে',
+    delivered: 'ডেলিভারড',
+    cancelled: 'বাতিল'
+  })[status] || status;
+}
+
 function startMyOrdersListener(uid) {
   if (myOrdersUnsub) myOrdersUnsub();
   let first = true;
@@ -961,7 +1027,7 @@ function startMyOrdersListener(uid) {
         const o = d.data();
         if (!first && knownOrderStatuses[d.id] && knownOrderStatuses[d.id] !== o.status) notifyBrowser('অর্ডার আপডেট হয়েছে', `#${d.id.slice(0,6)} — স্ট্যাটাস: ${o.status}`);
         knownOrderStatuses[d.id] = o.status;
-        return `<div class="order-card"><span class="status-badge ${o.status}">${o.status}</span><p style="margin-top:8px; font-size:0.85rem;">মোট: ৳${o.grandTotal}</p>${o.trackingUrl ? `<a href="${o.trackingUrl}" target="_blank" style="color:var(--accent-dark); font-weight:600; font-size:0.85rem; display:block; margin-top:6px;">ডেলিভারি ট্র্যাক করুন →</a>` : ''}</div>`;
+        return `<div class="order-card"><span class="status-badge ${o.status}">${orderStatusLabel(o.status)}</span><p style="margin-top:8px; font-size:0.85rem;">মোট: ৳${o.grandTotal}</p>${safeHttpUrl(o.trackingUrl) ? `<a href="${safeAttrUrl(o.trackingUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-dark); font-weight:600; font-size:0.85rem; display:block; margin-top:6px;">ডেলিভারি ট্র্যাক করুন →</a>` : ''}</div>`;
       }).join('');
       first = false;
     }, err => { console.error(err); document.getElementById('myOrdersList').innerHTML = '<p style="color:var(--danger); font-size:0.85rem;">লোড করতে সমস্যা হয়েছে (Firestore index প্রয়োজন হতে পারে, কনসোলে লিংক দেখুন)।</p>'; });
@@ -1121,7 +1187,7 @@ function renderProducts() {
   }
 
   document.getElementById('productGrid').innerHTML = list.map(p => `
-    <a class="card" href="/product/${p.id}/${slugify(p.name)}" onclick="event.preventDefault(); openFullview('${p.id}')">
+    <a class="card" href="${productAppUrl(p.id)}" onclick="event.preventDefault(); openFullview('${p.id}')">
       <div class="card-img-wrap">
         <button class="wish-btn ${wishlist[p.id] ? 'active' : ''}" onclick="event.stopPropagation(); event.preventDefault(); toggleWishlist('${p.id}')" aria-label="প্রিয়">
           <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -1177,7 +1243,7 @@ window.openFullview = (id, skipHistory) => {
   document.getElementById('ogTitleTag').setAttribute('content', p.name);
   document.getElementById('ogDescTag').setAttribute('content', (p.description || p.name).slice(0,155));
   document.getElementById('ogImageTag').setAttribute('content', p.image);
-  const productUrlForMeta = `https://shovon-store.web.app/product/${id}/${slugify(p.name)}`;
+  const productUrlForMeta = productSeoUrl(id, p.name);
   document.getElementById('canonicalLink').setAttribute('href', productUrlForMeta);
   document.getElementById('ogUrlTag').setAttribute('content', productUrlForMeta);
   document.getElementById('productJsonLd').textContent = JSON.stringify({
@@ -1185,7 +1251,7 @@ window.openFullview = (id, skipHistory) => {
     "description":p.description || p.name,
     "offers":{"@type":"Offer","priceCurrency":"BDT","price":p.price,"availability": p.stock==='স্টক নেই' ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"}
   });
-  if (!skipHistory) history.pushState({productId:id}, '', `?p=${id}`);
+  if (!skipHistory) history.pushState({productId:id}, '', `?p=${encodeURIComponent(id)}`);
 };
 function slugify(s) { return encodeURIComponent(String(s||'').trim().replace(/\s+/g,'-')).slice(0,60); }
 window.closeFullview = () => {
@@ -1194,16 +1260,16 @@ window.closeFullview = () => {
   document.getElementById('pageTitle').textContent = SITE_SETTINGS.storeName + " | স্টোর";
   document.getElementById('metaDesc').setAttribute('content', "শোভন স্টোর থেকে সেরা মানের স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন — bKash পেমেন্ট, দ্রুত ডেলিভারি, সারাদেশে।");
   document.getElementById('productJsonLd').textContent = '';
-  document.getElementById('canonicalLink').setAttribute('href', 'https://shovon-store.web.app/');
-  document.getElementById('ogUrlTag').setAttribute('content', 'https://shovon-store.web.app/');
-  document.getElementById('ogImageTag').setAttribute('content', 'https://shovon-store.web.app/icon-512.png');
-  if (getProductIdFromLocation()) history.pushState({}, '', '/');
+  document.getElementById('canonicalLink').setAttribute('href', siteUrl() + '/');
+  document.getElementById('ogUrlTag').setAttribute('content', siteUrl() + '/');
+  document.getElementById('ogImageTag').setAttribute('content', siteUrl() + '/icon-512.png');
+  if (getProductIdFromLocation()) history.pushState({}, '', `${appBaseUrl()}/`);
 };
 // পুরনো শেয়ার-লিংক (?p=id) এবং নতুন পাথ-স্টাইল লিংক (/product/id/slug) — দুটোই সাপোর্ট করে
 function getProductIdFromLocation() {
   const params = new URLSearchParams(location.search);
   if (params.get('p')) return params.get('p');
-  const m = location.pathname.match(/^\/product\/([^/]+)/);
+  const m = location.pathname.match(/(?:^|\/)product\/([^/]+)/);
   return m ? decodeURIComponent(m[1]) : null;
 }
 function handleDeepLinkOnLoad() {
@@ -1213,7 +1279,7 @@ function handleDeepLinkOnLoad() {
 window.addEventListener('popstate', () => { const pid = getProductIdFromLocation(); if (pid) openFullview(pid, true); else closeFullview(); });
 
 function openChatAboutProduct(p) {
-  const productUrl = `${window.location.origin}/?p=${p.id}`;
+  const productUrl = productAppUrl(p.id);
   const prefillMsg = `"${p.name}" সম্পর্কে জানতে চাই — ${productUrl}`;
   const goToChat = () => { closeFullview(); openDrawer('chatDrawer'); startChat(); document.getElementById('chatInput').value = prefillMsg; document.getElementById('chatInput').focus(); };
   if (isCustomer && auth.currentUser) goToChat();
@@ -1274,8 +1340,8 @@ function validateCheckoutForm() {
   const n = document.getElementById('custName').value.trim();
   const ad = document.getElementById('custAddress').value.trim();
   const trx = document.getElementById('custTrxId').value.trim();
-  const paid = document.getElementById('custPaidAmount').value;
-  document.getElementById('checkoutBtn').disabled = !(hasItems && loggedIn && n && ad && trx && Number(paid) > 0);
+  const paid = Number(document.getElementById('custPaidAmount').value);
+  document.getElementById('checkoutBtn').disabled = !(hasItems && loggedIn && n && ad && trx && paid > 0 && paid <= 10000000);
 }
 ['custName','custAddress','custTrxId','custPaidAmount'].forEach(id => { document.getElementById(id).addEventListener('input', validateCheckoutForm); });
 
@@ -1289,7 +1355,9 @@ document.getElementById('checkoutBtn').addEventListener('click', async () => {
   const deliveryCharge = computeDeliveryCharge();
   const grandTotal = itemsTotal + deliveryCharge;
   const paidAmount = Number(document.getElementById('custPaidAmount').value);
-  const status = paidAmount === grandTotal ? 'confirmed' : 'payment_mismatch';
+  // Payment is intentionally manual. The customer only submits the TrxID and amount;
+  // the single configured admin verifies the payment and changes the order status.
+  const status = 'pending_payment';
 
   const orderData = {
     customerUid: auth.currentUser.uid,
@@ -1301,7 +1369,7 @@ document.getElementById('checkoutBtn').addEventListener('click', async () => {
     paymentMethod: 'bKash',
     paymentTrxId: document.getElementById('custTrxId').value.trim(),
     paymentAmountEntered: paidAmount,
-    status, trackingUrl: "",
+    status, trackingUrl: "", statusUpdatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
   try {
@@ -1309,9 +1377,8 @@ document.getElementById('checkoutBtn').addEventListener('click', async () => {
     await db.collection('customers').doc(auth.currentUser.uid).set({ name: orderData.customerName, address: orderData.customerAddress, district: orderData.customerDistrict }, { merge: true });
     cart = {}; localStorage.setItem('shuvon_cart', JSON.stringify(cart)); updateCartUI();
     ['custTrxId','custPaidAmount'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('orderResultBody').innerHTML = status === 'confirmed'
-      ? `<div class="order-card"><span class="status-badge confirmed">অর্ডার নিশ্চিত হয়েছে</span><p style="margin-top:12px;">আপনার অর্ডার আইডি: <b>${ref.id}</b></p><p style="margin-top:6px; font-size:0.85rem; color:var(--ink-soft);">"অ্যাকাউন্ট" থেকে সবসময় স্ট্যাটাস দেখতে পারবেন। ডেলিভারি সময়: ${SITE_SETTINGS.deliveryTimeText}</p></div>`
-      : `<div class="order-card"><span class="status-badge payment_mismatch">অর্ডার পেন্ডিং</span><p style="margin-top:12px;">আপনার প্রদত্ত পরিমাণ প্রত্যাশিত মোট টাকার সাথে মিলছে না। মালিক শীঘ্রই যোগাযোগ করবেন। অর্ডার আইডি: <b>${ref.id}</b></p></div>`;
+    document.getElementById('orderResultBody').innerHTML =
+      `<div class="order-card"><span class="status-badge pending_payment">পেমেন্ট যাচাই হচ্ছে</span><p style="margin-top:12px;">আপনার অর্ডার আইডি: <b>${ref.id}</b></p><p style="margin-top:6px; font-size:0.85rem; color:var(--ink-soft);">TrxID ও পেমেন্টের পরিমাণ মালিক যাচাই করার পর অর্ডার নিশ্চিত হবে। "অ্যাকাউন্ট" থেকে স্ট্যাটাস দেখতে পারবেন। ডেলিভারি সময়: ${SITE_SETTINGS.deliveryTimeText}</p></div>`;
     openDrawer('orderResultDrawer');
   } catch(e) { alert("অর্ডার সম্পন্ন করতে সমস্যা হয়েছে: " + e.message); }
   btn.textContent = "অর্ডার নিশ্চিত করুন"; validateCheckoutForm();
@@ -1328,15 +1395,17 @@ window.openOrdersAdmin = async () => {
     body.innerHTML = snap.docs.map(d => {
       const o = d.data();
       return `<div class="order-card">
-        <span class="status-badge ${o.status}">${o.status}</span>
+        <span class="status-badge ${o.status}">${orderStatusLabel(o.status)}</span>
         <p style="margin-top:8px; font-weight:600;">${escapeHtml(o.customerName)} — ${escapeHtml(o.customerPhone)}</p>
         <p style="font-size:0.85rem; color:var(--ink-soft);">${escapeHtml(o.customerAddress)}, ${escapeHtml(o.customerDistrict)}</p>
         <p style="font-size:0.85rem; margin-top:4px;">মোট: ৳${o.grandTotal} | TrxID: ${escapeHtml(o.paymentTrxId)} | পাঠিয়েছে: ৳${o.paymentAmountEntered}</p>
-        <div class="field" style="margin-top:10px;"><label>ট্র্যাকিং লিংক</label><input type="text" value="${escapeHtml(o.trackingUrl||'')}" id="track_${d.id}" placeholder="ডেলিভারি অ্যাপের ট্র্যাকিং URL"></div>
+        <div class="field" style="margin-top:10px;"><label>ট্র্যাকিং লিংক</label><input type="url" value="${escapeHtml(o.trackingUrl||'')}" id="track_${d.id}" placeholder="https://..."></div>
         <div class="field"><label>স্ট্যাটাস</label>
           <select id="status_${d.id}">
-            <option value="confirmed" ${o.status==='confirmed'?'selected':''}>নিশ্চিত</option>
-            <option value="payment_mismatch" ${o.status==='payment_mismatch'?'selected':''}>মিসম্যাচ / পেন্ডিং</option>
+            <option value="pending_payment" ${o.status==='pending_payment'?'selected':''}>পেমেন্ট যাচাই বাকি</option>
+            <option value="confirmed" ${o.status==='confirmed'?'selected':''}>পেমেন্ট নিশ্চিত / অর্ডার কনফার্ম</option>
+            <option value="payment_mismatch" ${o.status==='payment_mismatch'?'selected':''}>পেমেন্ট মিসম্যাচ</option>
+            <option value="processing" ${o.status==='processing'?'selected':''}>প্রসেসিং</option>
             <option value="shipped" ${o.status==='shipped'?'selected':''}>পাঠানো হয়েছে</option>
             <option value="delivered" ${o.status==='delivered'?'selected':''}>ডেলিভারড</option>
             <option value="cancelled" ${o.status==='cancelled'?'selected':''}>বাতিল</option>
@@ -1350,7 +1419,8 @@ window.openOrdersAdmin = async () => {
 window.saveOrderAdmin = async (id) => {
   const trackingUrl = document.getElementById(`track_${id}`).value.trim();
   const status = document.getElementById(`status_${id}`).value;
-  try { await db.collection('orders').doc(id).update({ trackingUrl, status }); showToast("অর্ডার আপডেট হয়েছে"); }
+  if (trackingUrl && !safeHttpUrl(trackingUrl)) { alert('ট্র্যাকিং লিংক অবশ্যই https:// দিয়ে শুরু হতে হবে।'); return; }
+  try { await db.collection('orders').doc(id).update({ trackingUrl, status, statusUpdatedAt: firebase.firestore.FieldValue.serverTimestamp() }); showToast("অর্ডার আপডেট হয়েছে"); }
   catch(e) { alert("আপডেট ব্যর্থ: " + e.message); }
 };
 
