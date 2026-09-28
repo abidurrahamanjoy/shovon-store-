@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shuvon-store-v2';
+const CACHE_NAME = 'shuvon-store-v3'; // ভার্সন ৩ করা হয়েছে
 const APP_SHELL = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (e) => {
