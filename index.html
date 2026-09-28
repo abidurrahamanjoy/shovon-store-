@@ -395,7 +395,7 @@
     <div class="summary-row total"><span>সর্বমোট</span><span id="cartTotal">৳ ০</span></div>
 
     <div class="field"><input type="text" id="custName" placeholder="আপনার নাম"></div>
-    <div class="field"><input type="tel" id="custPhone" placeholder="মোবাইল নম্বর" disabled></div>
+    <div class="field"><input type="tel" id="custPhone" placeholder="মোবাইল নম্বর"></div>
     <div class="field"><textarea id="custAddress" placeholder="ডেলিভারি ঠিকানা" rows="2"></textarea></div>
 
     <div class="pay-box">
@@ -1367,6 +1367,9 @@ document.getElementById('custDistrict').addEventListener('change', (e) => {
 document.getElementById('custUpazila').addEventListener('input', (e) => { 
   if (customerProfile) customerProfile.upazila = e.target.value; 
 });
+document.getElementById('custPhone').addEventListener('input', (e) => { 
+  if (customerProfile) customerProfile.phone = e.target.value; 
+});
 document.getElementById('custName').addEventListener('input', (e) => { 
   if (customerProfile) customerProfile.name = e.target.value; 
 });
@@ -1379,51 +1382,74 @@ function validateCheckoutForm() {
   const hasItems = Object.keys(cart).length > 0;
   const loggedIn = isCustomer && auth.currentUser;
   const n = document.getElementById('custName').value.trim();
+  const ph = document.getElementById('custPhone').value.trim();
   const upz = document.getElementById('custUpazila').value.trim();
   const ad = document.getElementById('custAddress').value.trim();
   const trx = document.getElementById('custTrxId').value.trim();
   const paid = Number(document.getElementById('custPaidAmount').value);
-  document.getElementById('checkoutBtn').disabled = !(hasItems && loggedIn && n && upz && ad && trx && paid > 0 && paid <= 10000000);
+  document.getElementById('checkoutBtn').disabled = !(hasItems && loggedIn && n && ph && upz && ad && trx && paid > 0 && paid <= 10000000);
 }
-['custName','custUpazila','custAddress','custTrxId','custPaidAmount'].forEach(id => { document.getElementById(id).addEventListener('input', validateCheckoutForm); });
+['custName','custPhone','custUpazila','custAddress','custTrxId','custPaidAmount'].forEach(id => { document.getElementById(id).addEventListener('input', validateCheckoutForm); });
 
 document.getElementById('checkoutBtn').addEventListener('click', async () => {
   if (!auth.currentUser) return;
   const btn = document.getElementById('checkoutBtn');
   btn.disabled = true; btn.textContent = "প্রসেস হচ্ছে...";
-  const ids = Object.keys(cart);
-  const items = ids.map(id => { const p = PRODUCTS.find(x=>x.id===id); return { productId: id, name: p.name, price: p.price, qty: cart[id] }; });
-  const itemsTotal = items.reduce((s,i)=> s + i.price*i.qty, 0);
-  const deliveryCharge = computeDeliveryCharge();
-  const grandTotal = itemsTotal + deliveryCharge;
-  const paidAmount = Number(document.getElementById('custPaidAmount').value);
-  // Payment is intentionally manual. The customer only submits the TrxID and amount;
-  // the single configured admin verifies the payment and changes the order status.
-  const status = 'pending_payment';
-
-  const orderData = {
-    customerUid: auth.currentUser.uid,
-    customerName: document.getElementById('custName').value.trim(),
-    customerPhone: customerProfile.phone,
-    customerUpazila: document.getElementById('custUpazila').value.trim(),
-    customerAddress: document.getElementById('custAddress').value.trim(),
-    customerDistrict: document.getElementById('custDistrict').value,
-    items, itemsTotal, deliveryCharge, grandTotal,
-    paymentMethod: 'bKash',
-    paymentTrxId: document.getElementById('custTrxId').value.trim(),
-    paymentAmountEntered: paidAmount,
-    status, trackingUrl: "", statusUpdatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
+  
   try {
+    const ids = Object.keys(cart);
+    const items = [];
+    let itemsTotal = 0;
+    
+    // কার্ট থেকে আইটেম নিরাপদে বের করা
+    for (const id of ids) {
+       const p = PRODUCTS.find(x => x.id === id);
+       if (p) {
+           items.push({ productId: id, name: p.name, price: p.price, qty: cart[id] });
+           itemsTotal += (p.price * cart[id]);
+       }
+    }
+    
+    const deliveryCharge = computeDeliveryCharge();
+    const grandTotal = itemsTotal + deliveryCharge;
+    const paidAmount = Number(document.getElementById('custPaidAmount').value);
+    const status = 'pending_payment';
+
+    // ফোন নম্বর নিরাপদভাবে নেওয়া
+    const userPhone = document.getElementById('custPhone').value.trim() || (customerProfile ? customerProfile.phone : (auth.currentUser.email ? auth.currentUser.email.replace('@shuvon.customer', '') : ''));
+
+    const orderData = {
+      customerUid: auth.currentUser.uid,
+      customerName: document.getElementById('custName').value.trim(),
+      customerPhone: userPhone,
+      customerUpazila: document.getElementById('custUpazila').value.trim(),
+      customerAddress: document.getElementById('custAddress').value.trim(),
+      customerDistrict: document.getElementById('custDistrict').value,
+      items, itemsTotal, deliveryCharge, grandTotal,
+      paymentMethod: 'bKash',
+      paymentTrxId: document.getElementById('custTrxId').value.trim(),
+      paymentAmountEntered: paidAmount,
+      status, trackingUrl: "", statusUpdatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
     const ref = await db.collection('orders').add(orderData);
-    await db.collection('customers').doc(auth.currentUser.uid).set({ name: orderData.customerName, upazila: orderData.customerUpazila, address: orderData.customerAddress, district: orderData.customerDistrict }, { merge: true });
+    await db.collection('customers').doc(auth.currentUser.uid).set({ 
+        name: orderData.customerName, 
+        upazila: orderData.customerUpazila, 
+        address: orderData.customerAddress, 
+        district: orderData.customerDistrict 
+    }, { merge: true });
+    
     cart = {}; localStorage.setItem('shuvon_cart', JSON.stringify(cart)); updateCartUI();
     ['custTrxId','custPaidAmount'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('orderResultBody').innerHTML =
       `<div class="order-card"><span class="status-badge pending_payment">পেমেন্ট যাচাই হচ্ছে</span><p style="margin-top:12px;">আপনার অর্ডার আইডি: <b>${ref.id}</b></p><p style="margin-top:6px; font-size:0.85rem; color:var(--ink-soft);">TrxID ও পেমেন্টের পরিমাণ মালিক যাচাই করার পর অর্ডার নিশ্চিত হবে। "অ্যাকাউন্ট" থেকে স্ট্যাটাস দেখতে পারবেন। ডেলিভারি সময়: ${SITE_SETTINGS.deliveryTimeText}</p></div>`;
     openDrawer('orderResultDrawer');
-  } catch(e) { alert("অর্ডার সম্পন্ন করতে সমস্যা হয়েছে: " + e.message); }
+  } catch(e) { 
+    console.error(e);
+    alert("অর্ডার সম্পন্ন করতে সমস্যা হয়েছে: " + e.message); 
+  }
   btn.textContent = "অর্ডার নিশ্চিত করুন"; validateCheckoutForm();
 });
 
@@ -1513,7 +1539,7 @@ window.removeDraftHeroImage = (i) => { draftHeroImages.splice(i,1); renderHeroIm
 document.getElementById('heroInput').addEventListener('change', async (e) => {
   const file = e.target.files[0]; if(!file) return;
   showToast('ছবি আপলোড হচ্ছে...');
-  try { const url = await uploadToStorage(file, 'hero'); draftHeroImages.push(url); renderHeroImagesList(); showToast('যোগ হয়েছে — সেভ করতে ভুলবেন না'); }
+  try { const url = await uploadToStorage(file, 'hero'); draftHeroImages.push(url); renderHeroImagesList(); showToast('যোগ হয়েছে — সেভ করতে ভুলবেন ঘন'); }
   catch(err) { alert('আপলোড ব্যর্থ: ' + err.message); }
   e.target.value = '';
 });
