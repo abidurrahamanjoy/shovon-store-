@@ -507,7 +507,7 @@
     <p style="font-weight:700; margin-bottom:12px;">হিরো ব্যানার (একাধিক ছবি, স্লাইডশো)</p>
     <div id="heroImagesList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;"></div>
     <label style="display:block; border: 1.5px dashed var(--accent); border-radius: 14px; padding: 14px; text-align: center; margin-bottom: 16px; cursor: pointer; background: var(--sand);">
-      <span style="font-size: 0.85rem; color: var(--accent-dark); font-weight:600;">+ নতুন হিরো ছবি যোগ করুন</span>
+      <span style="font-size: 0.85rem; color: var(--accent-dark); font-weight:600;">+ নতুন হিরো ছবি যোগ করুন</span><small style="display:block;margin-top:6px;color:var(--ink-soft);font-size:0.72rem;">JPG / PNG / WEBP / GIF · সর্বোচ্চ ৫ MB · Cloudinary</small>
       <input type="file" accept="image/*" id="heroInput" style="display:none;">
     </label>
 
@@ -677,24 +677,44 @@ async function uploadToStorage(file, folder) {
   if (file.size > maxBytes) {
     throw new Error('ছবির সর্বোচ্চ সাইজ ৫ MB।');
   }
-  if (!STORE_CONFIG.cloudinaryCloudName || !STORE_CONFIG.cloudinaryUploadPreset) {
-    throw new Error('Cloudinary সেটআপ করা হয়নি — firebase-config.js-এ cloudinaryCloudName ও cloudinaryUploadPreset বসান');
+  const cloudName = String(STORE_CONFIG.cloudinaryCloudName || '').trim();
+  const uploadPreset = String(STORE_CONFIG.cloudinaryUploadPreset || '').trim();
+  if (!cloudName || !uploadPreset) {
+    throw new Error('Cloudinary সেটআপ নেই। firebase-config.js-এ cloudinaryCloudName এবং cloudinaryUploadPreset দিন।');
   }
-  const fd = new FormData();
-  fd.append('file', file);
-  fd.append('upload_preset', STORE_CONFIG.cloudinaryUploadPreset);
-  const safeFolder = String(folder || 'uploads').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40) || 'uploads';
-  fd.append('folder', `shuvon-store/${safeFolder}`);
+
+  const endpoint = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`;
+  const makeForm = (includeFolder) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', uploadPreset);
+    // Some unsigned presets reject a client-supplied folder. Therefore the first
+    // request uses the preset's own folder setting; no folder is forced here.
+    if (includeFolder === true) {
+      const safeFolder = String(folder || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40);
+      if (safeFolder) fd.append('folder', `shuvon-store-${safeFolder}`);
+    }
+    return fd;
+  };
+
   let res, json;
   try {
-    res = await fetch(`https://api.cloudinary.com/v1_1/${STORE_CONFIG.cloudinaryCloudName}/image/upload`, { method: 'POST', body: fd });
+    // Primary upload: do not force a folder, so Cloudinary preset folder rules are respected.
+    res = await fetch(endpoint, { method: 'POST', body: makeForm(false) });
   } catch (netErr) {
-    throw new Error('Cloudinary সার্ভারে পৌঁছানো যায়নি (নেটওয়ার্ক/CORS সমস্যা) — cloud name ঠিক আছে কিনা দেখুন: ' + STORE_CONFIG.cloudinaryCloudName);
+    throw new Error('Cloudinary সার্ভারে পৌঁছানো যায়নি। Internet/CORS বা Cloudinary Cloud Name পরীক্ষা করুন।');
   }
-  try { json = await res.json(); } catch (parseErr) { throw new Error(`Cloudinary থেকে অপ্রত্যাশিত উত্তর (HTTP ${res.status})`); }
+
+  try { json = await res.json(); }
+  catch (_) { throw new Error(`Cloudinary থেকে অপ্রত্যাশিত উত্তর (HTTP ${res.status})`); }
+
   if (!res.ok || !json.secure_url || json.resource_type !== 'image' || !String(json.secure_url).startsWith('https://')) {
     const msg = json && json.error ? json.error.message : `HTTP ${res.status}`;
-    throw new Error(`আপলোড ব্যর্থ (preset: "${STORE_CONFIG.cloudinaryUploadPreset}"): ${msg}`);
+    const lower = String(msg).toLowerCase();
+    if (lower.includes('upload preset') || lower.includes('unsigned') || lower.includes('not found')) {
+      throw new Error(`Cloudinary upload preset সমস্যা: "${uploadPreset}"। Cloudinary → Settings → Upload → Upload Presets-এ এই preset-টি অবশ্যই Unsigned হতে হবে।`);
+    }
+    throw new Error(`আপলোড ব্যর্থ (Cloudinary preset: "${uploadPreset}"): ${msg}`);
   }
   return json.secure_url;
 }
