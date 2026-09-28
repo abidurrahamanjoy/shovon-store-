@@ -1,0 +1,223 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+/* ========================================================
+   🔐 ADMIN AUTHORIZATION
+   ======================================================== */
+
+function isAdmin() {
+  return request.auth != null
+    && request.auth.uid == "h8Dz1CPX4ghH3VLSr7XWZU0lvJC2";
+}
+
+
+/* ========================================================
+   📦 PRODUCTS
+   ======================================================== */
+
+function validProductData() {
+  return request.resource.data.keys().hasOnly([
+      "name","category","price","stock","image","images","description","createdAt","updatedAt"
+    ])
+    && request.resource.data.name is string
+    && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 120
+    && request.resource.data.category is string
+    && request.resource.data.category.size() > 0 && request.resource.data.category.size() <= 60
+    && request.resource.data.price is number
+    && request.resource.data.price > 0 && request.resource.data.price <= 10000000
+    && request.resource.data.stock is string
+    && request.resource.data.stock in ["স্টকে আছে","সীমিত স্টক","স্টক নেই"]
+    && request.resource.data.image is string && request.resource.data.image.size() <= 2048
+    && request.resource.data.images is list && request.resource.data.images.size() <= 6
+    && request.resource.data.description is string && request.resource.data.description.size() <= 1000
+    && request.resource.data.updatedAt is timestamp;
+}
+
+function validNewProductData() {
+  return validProductData() && request.resource.data.createdAt is timestamp;
+}
+
+match /products/{productId} {
+  allow read: if true;
+  allow create: if isAdmin() && validNewProductData();
+  allow update: if isAdmin() && validProductData();
+  allow delete: if isAdmin();
+}
+
+
+/* ========================================================
+   🏷️ CATEGORIES
+   ======================================================== */
+
+function validCategoryData() {
+  return request.resource.data.keys().hasOnly(["image"])
+    && request.resource.data.image is string
+    && request.resource.data.image.size() > 0 && request.resource.data.image.size() <= 2048;
+}
+
+match /categories/{categoryId} {
+  allow read: if true;
+  allow create, update: if isAdmin() && validCategoryData();
+  allow delete: if isAdmin();
+}
+
+
+/* ========================================================
+   ⚙️ STORE SETTINGS
+   ======================================================== */
+
+function validStoreSettings() {
+  return request.resource.data.keys().hasOnly([
+      "storeName","whatsappNumber","currency","logoUrl","heroImages",
+      "bgType","bgColor",
+      "ownerDistrict","deliveryChargeInside","deliveryChargeOutside",
+      "deliveryTimeText","termsText","bkashNumber"
+    ])
+    && request.resource.data.storeName is string
+    && request.resource.data.storeName.size() > 0 && request.resource.data.storeName.size() <= 120
+    && request.resource.data.whatsappNumber is string
+    && request.resource.data.whatsappNumber.matches('^8801[3-9][0-9]{8}$')
+    && request.resource.data.currency is string
+    && request.resource.data.currency.size() > 0 && request.resource.data.currency.size() <= 10
+    && request.resource.data.logoUrl is string && request.resource.data.logoUrl.size() <= 2048
+    && request.resource.data.heroImages is list && request.resource.data.heroImages.size() <= 6
+    && request.resource.data.bgType is string && request.resource.data.bgType.size() <= 30
+    && request.resource.data.bgColor is string && request.resource.data.bgColor.size() <= 20
+    && request.resource.data.ownerDistrict is string && request.resource.data.ownerDistrict.size() <= 60
+    && request.resource.data.deliveryChargeInside is number
+    && request.resource.data.deliveryChargeInside >= 0 && request.resource.data.deliveryChargeInside <= 5000
+    && request.resource.data.deliveryChargeOutside is number
+    && request.resource.data.deliveryChargeOutside >= 0 && request.resource.data.deliveryChargeOutside <= 5000
+    && request.resource.data.deliveryTimeText is string && request.resource.data.deliveryTimeText.size() <= 200
+    && request.resource.data.termsText is string && request.resource.data.termsText.size() <= 5000
+    && request.resource.data.bkashNumber is string
+    && request.resource.data.bkashNumber.matches('^01[3-9][0-9]{8}$');
+}
+
+match /settings/{docId} {
+  allow read: if true;
+  allow create, update: if isAdmin() && docId == "store_info" && validStoreSettings();
+  allow delete: if false;
+}
+
+
+/* ========================================================
+   👤 CUSTOMERS
+   ======================================================== */
+
+function validCustomerData() {
+  return request.resource.data.keys().hasOnly(["phone","name","address","district","createdAt"])
+    && request.resource.data.phone is string
+    && request.resource.data.phone.matches('^01[3-9][0-9]{8}$')
+    && request.resource.data.name is string && request.resource.data.name.size() <= 100
+    && request.resource.data.address is string && request.resource.data.address.size() <= 400
+    && request.resource.data.district is string && request.resource.data.district.size() <= 60
+    && request.resource.data.createdAt is timestamp;
+}
+
+match /customers/{uid} {
+  allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+  allow create: if request.auth != null && request.auth.uid == uid && validCustomerData();
+  allow update: if request.auth != null && request.auth.uid == uid
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["name","address","district"]);
+  allow delete: if false;
+}
+
+
+/* ========================================================
+   🧾 ORDERS
+   ======================================================== */
+
+function validOrderItems() {
+  return request.resource.data.items is list
+    && request.resource.data.items.size() > 0
+    && request.resource.data.items.size() <= 50;
+}
+
+function validNewOrder() {
+  return request.resource.data.keys().hasOnly([
+      "customerUid","customerName","customerPhone","customerAddress","customerDistrict",
+      "items","itemsTotal","deliveryCharge","grandTotal",
+      "paymentMethod","paymentTrxId","paymentAmountEntered",
+      "status","trackingUrl","createdAt"
+    ])
+    && request.auth != null
+    && request.resource.data.customerUid == request.auth.uid
+    && request.resource.data.customerName is string
+    && request.resource.data.customerName.size() > 0 && request.resource.data.customerName.size() <= 100
+    && request.resource.data.customerPhone is string
+    && request.resource.data.customerPhone.matches('^01[3-9][0-9]{8}$')
+    && request.resource.data.customerAddress is string
+    && request.resource.data.customerAddress.size() > 0 && request.resource.data.customerAddress.size() <= 400
+    && request.resource.data.customerDistrict is string
+    && request.resource.data.customerDistrict.size() > 0 && request.resource.data.customerDistrict.size() <= 60
+    && validOrderItems()
+    && request.resource.data.itemsTotal is number && request.resource.data.itemsTotal >= 0
+    && request.resource.data.deliveryCharge is number && request.resource.data.deliveryCharge >= 0
+    && request.resource.data.grandTotal is number && request.resource.data.grandTotal >= 0
+    && request.resource.data.paymentMethod is string
+    && request.resource.data.paymentTrxId is string
+    && request.resource.data.paymentTrxId.size() > 0 && request.resource.data.paymentTrxId.size() <= 60
+    && request.resource.data.paymentAmountEntered is number
+    && request.resource.data.paymentAmountEntered > 0
+    && request.resource.data.status is string
+    && request.resource.data.status in ["confirmed","payment_mismatch"]
+    && request.resource.data.trackingUrl is string && request.resource.data.trackingUrl.size() <= 500
+    && request.resource.data.createdAt is timestamp;
+}
+
+match /orders/{orderId} {
+  allow get: if true;
+  allow list: if isAdmin() || (request.auth != null && resource.data.customerUid == request.auth.uid);
+  allow create: if validNewOrder();
+  allow update: if isAdmin();
+  allow delete: if isAdmin();
+}
+
+
+/* ========================================================
+   💬 CHATS (কাস্টমার ↔ মালিক সরাসরি ইনবক্স)
+   একজন কাস্টমারের সব বার্তা chats/{customerUid} থ্রেডে থাকে।
+   ======================================================== */
+
+function validChatMeta() {
+  return request.resource.data.keys().hasOnly(["customerName","customerPhone","lastMessage","lastMessageAt","unreadByAdmin","unreadByCustomer"])
+    && request.resource.data.customerName is string && request.resource.data.customerName.size() <= 100
+    && request.resource.data.customerPhone is string && request.resource.data.customerPhone.size() <= 20
+    && request.resource.data.lastMessage is string && request.resource.data.lastMessage.size() <= 1000
+    && request.resource.data.lastMessageAt is timestamp
+    && request.resource.data.unreadByAdmin is bool
+    && request.resource.data.unreadByCustomer is bool;
+}
+
+match /chats/{uid} {
+  allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+  allow write: if request.auth != null && (request.auth.uid == uid || isAdmin()) && validChatMeta();
+
+  match /messages/{messageId} {
+    function validMessage() {
+      return request.resource.data.keys().hasOnly(["sender","text","createdAt"])
+        && request.resource.data.sender in ["customer","admin"]
+        && (request.resource.data.sender == "admin" ? isAdmin() : request.auth.uid == uid)
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1000
+        && request.resource.data.createdAt is timestamp;
+    }
+    allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+    allow create: if request.auth != null && (request.auth.uid == uid || isAdmin()) && validMessage();
+    allow update, delete: if false;
+  }
+}
+
+
+/* ========================================================
+   🚫 EVERYTHING ELSE DENIED
+   ======================================================== */
+
+match /{document=**} {
+  allow read, write: if false;
+}
+
+  }
+}

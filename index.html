@@ -41,7 +41,7 @@
     --danger: #C0392B; --danger-soft: #FBE7E4; --success: #2E7D46; --success-soft: #E4F5E9;
     --radius-lg: 20px; --radius-md: 14px; --radius-sm: 10px;
     --shadow-card: 0 6px 18px rgba(30,27,22,0.08); --shadow-pop: 0 10px 30px rgba(30,27,22,0.18);
-    --glass-bg: rgba(255,255,255,0.62); --glass-border: rgba(255,255,255,0.5);
+    --glass-bg: rgba(255,255,255,0.45); --glass-border: rgba(255,255,255,0.5);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
   body { background: var(--paper); color: var(--ink); line-height: 1.5; padding-bottom: 86px; overflow-x: hidden; }
@@ -53,7 +53,7 @@
   img { max-width: 100%; display: block; }
   input, textarea, select { font-family: inherit; }
 
-  .glass { background: var(--glass-bg); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); border: 1px solid var(--glass-border); }
+  .glass { background: var(--glass-bg); backdrop-filter: blur(22px) saturate(180%); -webkit-backdrop-filter: blur(22px) saturate(180%); box-shadow: 0 4px 24px rgba(30,27,22,0.06); border: 1px solid var(--glass-border); }
 
   .wrap { max-width: 480px; margin: 0 auto; padding: 0 18px; position: relative; }
 
@@ -93,8 +93,8 @@
   .hero-slides { position: relative; width:100%; height:100%; min-height: 190px; }
   .hero-slide { position: absolute; inset:0; background-size: cover; background-position: center; opacity:0; transition: opacity 1s ease; }
   .hero-slide.active { opacity:1; }
-  .hero-content { position: absolute; inset:0; z-index: 2; color: white; display:flex; align-items:center; padding: 26px; }
-  .hero-content-inner { max-width: 78%; background: rgba(20,17,12,0.38); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: var(--radius-md); padding: 14px 16px; }
+  .hero-content { position: absolute; inset:0; z-index: 2; color: white; display:flex; align-items:center; padding: 26px; background: linear-gradient(90deg, rgba(20,17,12,0.5) 0%, rgba(20,17,12,0.15) 70%, transparent 100%); }
+  .hero-content-inner { max-width: 85%; padding: 0; background: none; text-shadow: 0 1px 8px rgba(0,0,0,0.35); }
   .hero-dots { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:3; }
   .hero-dots span { width:6px; height:6px; border-radius:50%; background: rgba(255,255,255,0.5); transition: all .2s; }
   .hero-dots span.active { background:#fff; width:16px; border-radius:4px; }
@@ -252,6 +252,16 @@
 
   .toast { position: fixed; top: calc(env(safe-area-inset-top,0px) + 16px); left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--ink); color: white; padding: 12px 22px; border-radius: 30px; font-size: 0.85rem; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 130; box-shadow: var(--shadow-pop); white-space: nowrap; max-width: 90vw; overflow:hidden; text-overflow:ellipsis; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .search-bar.open { max-height: 70px; }
+  .search-wrap { position: relative; }
+  .suggest-box { display:none; position:absolute; left:18px; right:18px; top:0; z-index:45; background: rgba(255,255,255,0.85); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border:1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-pop); overflow:hidden; max-height: 320px; overflow-y:auto; }
+  .suggest-box.show { display:block; }
+  .suggest-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .suggest-item:last-child { border-bottom:none; }
+  .suggest-item img { width:38px; height:38px; border-radius:8px; object-fit:cover; background:var(--sand); }
+  .suggest-item b { font-size:0.88rem; font-weight:600; flex:1; }
+  .suggest-item span { font-size:0.82rem; color:var(--accent-dark); font-weight:700; }
 </style>
 </head>
 <body>
@@ -263,7 +273,7 @@
     </button>
     <div class="brand">
       <img id="siteLogoImg" src="" style="display:none;" alt="Logo">
-      <span id="siteStoreName">শোভন স্টোর</span>
+      <span id="siteStoreName">আমার শপ</span>
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="searchOpenBtn" aria-label="খুঁজুন">
@@ -279,7 +289,8 @@
   </div>
 </header>
 
-<div class="search-bar" id="searchBar"><input type="text" id="searchInput" placeholder="পণ্য খুঁজুন..."></div>
+<div class="search-bar" id="searchBar"><input type="text" id="searchInput" placeholder="পণ্য খুঁজুন..." autocomplete="off"></div>
+<div class="search-wrap"><div class="suggest-box" id="suggestBox"></div></div>
 
 <div class="wrap wrap-inner">
   <div class="hero" id="heroBox">
@@ -309,8 +320,8 @@
 
 <nav class="bottom-nav glass">
   <a href="#" class="nav-item active" id="navHomeBtn"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>হোম</span></a>
-  <a href="#" class="nav-item" id="navSearchBtn"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>খুঁজুন</span></a>
   <a href="#" class="nav-item" id="navFavBtn"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>পছন্দ</span></a>
+  <a href="#" class="nav-item" id="navInboxBtn"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>ইনবক্স</span></a>
 </nav>
 
 <a href="#" id="floatWaBtn" class="wa-float" target="_blank" aria-label="WhatsApp Chat">
@@ -333,7 +344,6 @@
     <a href="#" class="menu-link" onclick="closeAllDrawers(); showFavorites(); return false;"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> প্রিয় তালিকা</a>
     <a href="#" class="menu-link" onclick="closeAllDrawers(); openDrawer('termsDrawer'); return false;"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> শর্তাবলী</a>
     <a href="#" class="menu-link" id="menuAccountLink"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> অ্যাকাউন্ট</a>
-    <a href="#" class="menu-link" onclick="closeAllDrawers(); openDrawer('adminLoginDrawer'); return false;" style="font-size:0.8rem; color:var(--ink-soft); font-weight:500;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> স্টোর মালিক (এডমিন)</a>
     <a href="#" class="menu-link" id="menuWaLink" target="_blank" style="border-bottom:none;"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> যোগাযোগ করুন</a>
   </div>
 </div>
@@ -699,11 +709,22 @@ const searchInputEl = document.getElementById('searchInput');
 function toggleSearch() {
   searchBarEl.classList.toggle('open');
   if (searchBarEl.classList.contains('open')) setTimeout(() => searchInputEl.focus(), 200);
-  else { searchInputEl.value = ''; searchTerm = ''; renderProducts(); }
+  else { searchInputEl.value = ''; searchTerm = ''; hideSuggest(); renderProducts(); }
 }
 document.getElementById('searchOpenBtn').addEventListener('click', toggleSearch);
-document.getElementById('navSearchBtn').addEventListener('click', (e) => { e.preventDefault(); setActiveNav('navSearchBtn'); toggleSearch(); });
-searchInputEl.addEventListener('input', (e) => { searchTerm = e.target.value.trim().toLowerCase(); renderProducts(); });
+const suggestBoxEl = document.getElementById('suggestBox');
+function hideSuggest() { suggestBoxEl.classList.remove('show'); suggestBoxEl.innerHTML = ''; }
+function updateSuggest() {
+  const words = searchTerm.split(/\s+/).filter(Boolean);
+  if (!words.length) { hideSuggest(); return; }
+  const top = PRODUCTS.map(p => ({ p, s: scoreProduct(p, words) })).filter(x => x.s > 0).sort((a,b) => b.s - a.s).slice(0, 6).map(x => x.p);
+  if (!top.length) { hideSuggest(); return; }
+  suggestBoxEl.innerHTML = top.map(p => `<div class="suggest-item" data-id="${p.id}"><img src="${p.image}" alt=""><b>${escapeHtml(p.name)}</b><span>৳${p.price}</span></div>`).join('');
+  suggestBoxEl.classList.add('show');
+}
+suggestBoxEl.addEventListener('click', (e) => { const it = e.target.closest('.suggest-item'); if (!it) return; hideSuggest(); openFullview(it.dataset.id); });
+document.addEventListener('click', (e) => { if (!e.target.closest('#suggestBox') && !e.target.closest('#searchBar')) hideSuggest(); });
+searchInputEl.addEventListener('input', (e) => { searchTerm = e.target.value.trim().toLowerCase(); renderProducts(); updateSuggest(); });
 document.getElementById('sortSelect').addEventListener('change', (e) => { sortMode = e.target.value; renderProducts(); });
 
 function setActiveNav(id) { document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); }
@@ -752,7 +773,8 @@ function applyBackground() {
 }
 
 function renderHeroCarousel() {
-  const images = (SITE_SETTINGS.heroImages && SITE_SETTINGS.heroImages.length) ? SITE_SETTINGS.heroImages : ['https://images.unsplash.com/photo-1522836924445-4478bdeb828e?q=80&w=900&auto=format&fit=crop'];
+  const validImages = (SITE_SETTINGS.heroImages || []).filter(Boolean);
+  const images = validImages.length ? validImages : ['https://images.unsplash.com/photo-1522836924445-4478bdeb828e?q=80&w=900&auto=format&fit=crop'];
   document.getElementById('heroSlides').innerHTML = images.map((url,i) => `<div class="hero-slide ${i===0?'active':''}" style="background-image:url('${url}')"></div>`).join('');
   document.getElementById('heroDots').innerHTML = images.length > 1 ? images.map((_,i)=>`<span class="${i===0?'active':''}"></span>`).join('') : '';
   heroSlideIndex = 0;
@@ -769,6 +791,10 @@ function hexToRgba(hex, alpha) {
   const r = parseInt(hex.substring(0,2),16), g = parseInt(hex.substring(2,4),16), b = parseInt(hex.substring(4,6),16);
   return `rgba(${r},${g},${b},${alpha})`;
 }
+
+/* ---------------- গোপন এডমিন লিংক: /admin (বা #admin) ---------------- */
+function isAdminUrl() { return /\/admin\/?$/i.test(location.pathname) || location.hash.toLowerCase() === '#admin'; }
+window.addEventListener('load', () => { if (isAdminUrl()) setTimeout(() => openDrawer('adminLoginDrawer'), 400); });
 
 /* ---------------- Auth ---------------- */
 auth.onAuthStateChanged(async user => {
@@ -1060,6 +1086,7 @@ window.toggleWishlist = (id) => {
   if (currentViewProductId === id) document.getElementById('fvWishBtn').querySelector('svg').style.fill = wishlist[id] ? 'var(--danger)' : 'none';
   showToast(wishlist[id] ? "প্রিয় তালিকায় যোগ হয়েছে" : "প্রিয় তালিকা থেকে সরানো হয়েছে");
 };
+window.updateFvDots = () => { const s = document.getElementById('fvSlider'); const i = Math.round(s.scrollLeft / (s.clientWidth || 1)); document.querySelectorAll('#fvDots .dot').forEach((d,k) => d.classList.toggle('active', k === i)); };
 window.toggleWishlistFromView = () => { if (currentViewProductId) toggleWishlist(currentViewProductId); };
 
 /* ---------------- ফুল-স্ক্রিন প্রোডাক্ট ভিউ + SEO ডিপ-লিংক ---------------- */
@@ -1067,8 +1094,6 @@ window.openFullview = (id, skipHistory) => {
   const p = PRODUCTS.find(x => x.id === id);
   if (!p) return;
   currentViewProductId = id;
-  document.getElementById('fvImage').src = p.image;
-  document.getElementById('fvImage').alt = p.name;
   document.getElementById('fvName').textContent = p.name;
   document.getElementById('fvPrice').textContent = `৳${p.price}`;
   document.getElementById('fvDesc').textContent = p.description || 'এই পণ্যের বিস্তারিত বিবরণ এখনো যোগ করা হয়নি।';
@@ -1081,6 +1106,10 @@ window.openFullview = (id, skipHistory) => {
   addBtn.onclick = () => addToCart(id);
   document.getElementById('fvMessageBtn').onclick = () => openChatAboutProduct(p);
 
+  const fvImgs = [...new Set([p.image, ...(Array.isArray(p.images) ? p.images : [])].filter(Boolean))];
+  document.getElementById('fvSlider').innerHTML = fvImgs.map(u => `<div class="fullview-slide"><img src="${u}" alt="${escapeHtml(p.name)}"></div>`).join('');
+  document.getElementById('fvSlider').scrollLeft = 0;
+  document.getElementById('fvDots').innerHTML = fvImgs.length > 1 ? fvImgs.map((_,i) => `<span class="dot ${i===0?'active':''}"></span>`).join('') : '';
   document.getElementById('productFullview').classList.add('open');
   document.getElementById('productFullview').scrollTop = 0;
 
