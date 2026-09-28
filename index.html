@@ -306,7 +306,7 @@
     <div class="hero-slides" id="heroSlides"></div>
     <div class="hero-content">
       <div class="hero-content-inner">
-        <h1>আপনার সব প্রয়োজন এখন এক ঠিকানায়</h1>
+        <h1>আপনার সব প্রয়োজন এখন এক ঠিকানায়</h1>
         <p>দারুণ সব অফার আর সেরা পণ্য কিনুন এখনি।</p>
         <a href="#products" class="hero-btn">পণ্য দেখুন</a>
       </div>
@@ -388,7 +388,8 @@
   <div class="drawer-head"><h2>আপনার কার্ট</h2><button class="drawer-close" onclick="closeAllDrawers()">&times;</button></div>
   <div class="drawer-body" id="cartItems"></div>
   <div class="drawer-foot" style="max-height:45vh; overflow-y:auto;">
-    <div class="field"><label>জেলা নির্বাচন করুন</label><select id="custDistrict"></select></div>
+    <div class="field"><label>ডেলিভারি জেলা নির্বাচন করুন</label><select id="custDistrict"></select></div>
+    <div class="field"><input type="text" id="custUpazila" placeholder="ডেলিভারি উপজেলা লিখুন"></div>
     <div class="summary-row"><span>পণ্যের মূল্য</span><span id="sumItems">৳ ০</span></div>
     <div class="summary-row"><span>ডেলিভারি চার্জ</span><span id="sumDelivery">৳ ০</span></div>
     <div class="summary-row total"><span>সর্বমোট</span><span id="cartTotal">৳ ০</span></div>
@@ -433,6 +434,7 @@
       <div class="field"><label>নাম</label><input type="text" id="profName"></div>
       <div class="field"><label>ফোন</label><input type="text" id="profPhone" disabled></div>
       <div class="field"><label>জেলা</label><select id="profDistrict"></select></div>
+      <div class="field"><label>উপজেলা</label><input type="text" id="profUpazila"></div>
       <div class="field"><label>ঠিকানা</label><textarea id="profAddress" rows="2"></textarea></div>
       <button class="btn-block btn-outline" id="profSaveBtn">প্রোফাইল সংরক্ষণ করুন</button>
     </div>
@@ -580,7 +582,7 @@
   <div class="glass-card" style="text-align: center;">
     <button class="modal-close-x" onclick="document.getElementById('welcomeModalOverlay').classList.remove('open')">&times;</button>
     <h2 style="font-size: 1.6rem; color: var(--accent-dark); margin-bottom: 12px; font-weight: 700;">আসসালামু আলাইকুম!</h2>
-    <p style="font-size: 1rem; color: var(--ink); margin-bottom: 22px;">আমাদের "আমার শপ"-এ আপনাকে স্বাগতম। আশা করি আপনার কেনাকাটা আনন্দদায়ক হবে।</p>
+    <p style="font-size: 1rem; color: var(--ink); margin-bottom: 22px;">আমাদের "আমার শপ"-এ আপনাকে স্বাগতম। আশা করি আপনার কেনাকাটা আনন্দদায়ক হবে।</p>
     <button class="btn-block" onclick="document.getElementById('welcomeModalOverlay').classList.remove('open')">ধন্যবাদ</button>
   </div>
 </div>
@@ -665,7 +667,7 @@ function notifyBrowser(title, body) {
   showToast(title);
 }
 function requestNotifPermission(btn) {
-  if (!('Notification' in window)) { alert('আপনার ব্রাউজার নোটিফিকেশন সাপোর্ট করে না'); return; }
+  if (!('Notification' in window)) { alert('আপনার ব্রাউজার নোটিফিকেশন সাপোর্ট করে সাপোর্ট করে না'); return; }
   Notification.requestPermission().then(p => { if (btn) btn.textContent = p === 'granted' ? 'চালু আছে ✓' : 'অনুমতি দিন'; });
 }
 async function uploadToStorage(file, folder) {
@@ -922,11 +924,11 @@ window.addEventListener('load', () => {
     setTimeout(() => {
       document.getElementById('welcomeModalOverlay').classList.add('open');
       localStorage.setItem('shuvon_welcome_shown', today);
-    }, 1000); // পেজ লোড হওয়ার ১ সেকেন্ড পর আসবে
+    }, 1000); // পেজ লোড হওয়ার ১ সেকেন্ড পর আসবে
   }
 });
 
-// ওয়েলকাম পপ-আপের বাইরে ক্লিক করলে বন্ধ হওয়ার লজিক
+// ওয়েলকাম পপ-আপের বাইরে ক্লিক করলে বন্ধ হওয়ার লজিক
 document.getElementById('welcomeModalOverlay').addEventListener('click', (e) => { 
   if (e.target.id === 'welcomeModalOverlay') e.target.classList.remove('open'); 
 });
@@ -974,11 +976,12 @@ auth.onAuthStateChanged(async user => {
       document.getElementById('accountLoggedInSection').style.display = 'block';
       const phone = user.email.replace(CUSTOMER_EMAIL_DOMAIN, '');
       const custDoc = await db.collection('customers').doc(user.uid).get();
-      customerProfile = custDoc.exists ? custDoc.data() : { phone, name: '', address: '', district: SITE_SETTINGS.ownerDistrict };
+      customerProfile = custDoc.exists ? custDoc.data() : { phone, name: '', address: '', district: SITE_SETTINGS.ownerDistrict, upazila: '' };
       document.getElementById('profName').value = customerProfile.name || '';
       document.getElementById('profPhone').value = customerProfile.phone || phone;
-      document.getElementById('profAddress').value = customerProfile.address || '';
       document.getElementById('profDistrict').value = customerProfile.district || SITE_SETTINGS.ownerDistrict;
+      document.getElementById('profUpazila').value = customerProfile.upazila || '';
+      document.getElementById('profAddress').value = customerProfile.address || '';
       startMyOrdersListener(user.uid);
   } else {
       document.getElementById('accountLoggedOutSection').style.display = 'block';
@@ -1023,7 +1026,7 @@ async function customerAuthSubmit(phone, password, errorEl) {
 document.getElementById('custLogoutBtn').addEventListener('click', () => { auth.signOut(); closeAllDrawers(); showToast('লগআউট হয়েছে'); });
 document.getElementById('profSaveBtn').addEventListener('click', async () => {
   if (!auth.currentUser) return;
-  const data = { name: document.getElementById('profName').value.trim(), address: document.getElementById('profAddress').value.trim(), district: document.getElementById('profDistrict').value };
+  const data = { name: document.getElementById('profName').value.trim(), address: document.getElementById('profAddress').value.trim(), district: document.getElementById('profDistrict').value, upazila: document.getElementById('profUpazila').value.trim() };
   try { await db.collection('customers').doc(auth.currentUser.uid).set(data, { merge: true }); customerProfile = { ...customerProfile, ...data }; showToast('প্রোফাইল সংরক্ষণ হয়েছে'); }
   catch(e) { alert('সংরক্ষণে সমস্যা: ' + e.message); }
 });
@@ -1331,8 +1334,9 @@ function updateCartUI() {
   if (isCustomer && auth.currentUser && customerProfile) {
     document.getElementById('custName').value = customerProfile.name || '';
     document.getElementById('custPhone').value = customerProfile.phone || '';
-    document.getElementById('custAddress').value = customerProfile.address || '';
     document.getElementById('custDistrict').value = customerProfile.district || SITE_SETTINGS.ownerDistrict;
+    document.getElementById('custUpazila').value = customerProfile.upazila || '';
+    document.getElementById('custAddress').value = customerProfile.address || '';
   }
 
   const ids = Object.keys(cart);
@@ -1356,19 +1360,32 @@ function updateCartUI() {
   document.getElementById('payAmountHint').textContent = `৳ ${grand}`;
   validateCheckoutForm();
 }
-document.getElementById('custDistrict').addEventListener('change', updateCartUI);
+document.getElementById('custDistrict').addEventListener('change', (e) => { 
+  if (customerProfile) customerProfile.district = e.target.value; 
+  updateCartUI(); 
+});
+document.getElementById('custUpazila').addEventListener('input', (e) => { 
+  if (customerProfile) customerProfile.upazila = e.target.value; 
+});
+document.getElementById('custName').addEventListener('input', (e) => { 
+  if (customerProfile) customerProfile.name = e.target.value; 
+});
+document.getElementById('custAddress').addEventListener('input', (e) => { 
+  if (customerProfile) customerProfile.address = e.target.value; 
+});
 window.updateQty = (id, delta) => { cart[id] += delta; if (cart[id] <= 0) delete cart[id]; localStorage.setItem('shuvon_cart', JSON.stringify(cart)); updateCartUI(); }
 
 function validateCheckoutForm() {
   const hasItems = Object.keys(cart).length > 0;
   const loggedIn = isCustomer && auth.currentUser;
   const n = document.getElementById('custName').value.trim();
+  const upz = document.getElementById('custUpazila').value.trim();
   const ad = document.getElementById('custAddress').value.trim();
   const trx = document.getElementById('custTrxId').value.trim();
   const paid = Number(document.getElementById('custPaidAmount').value);
-  document.getElementById('checkoutBtn').disabled = !(hasItems && loggedIn && n && ad && trx && paid > 0 && paid <= 10000000);
+  document.getElementById('checkoutBtn').disabled = !(hasItems && loggedIn && n && upz && ad && trx && paid > 0 && paid <= 10000000);
 }
-['custName','custAddress','custTrxId','custPaidAmount'].forEach(id => { document.getElementById(id).addEventListener('input', validateCheckoutForm); });
+['custName','custUpazila','custAddress','custTrxId','custPaidAmount'].forEach(id => { document.getElementById(id).addEventListener('input', validateCheckoutForm); });
 
 document.getElementById('checkoutBtn').addEventListener('click', async () => {
   if (!auth.currentUser) return;
@@ -1388,6 +1405,7 @@ document.getElementById('checkoutBtn').addEventListener('click', async () => {
     customerUid: auth.currentUser.uid,
     customerName: document.getElementById('custName').value.trim(),
     customerPhone: customerProfile.phone,
+    customerUpazila: document.getElementById('custUpazila').value.trim(),
     customerAddress: document.getElementById('custAddress').value.trim(),
     customerDistrict: document.getElementById('custDistrict').value,
     items, itemsTotal, deliveryCharge, grandTotal,
@@ -1399,7 +1417,7 @@ document.getElementById('checkoutBtn').addEventListener('click', async () => {
   };
   try {
     const ref = await db.collection('orders').add(orderData);
-    await db.collection('customers').doc(auth.currentUser.uid).set({ name: orderData.customerName, address: orderData.customerAddress, district: orderData.customerDistrict }, { merge: true });
+    await db.collection('customers').doc(auth.currentUser.uid).set({ name: orderData.customerName, upazila: orderData.customerUpazila, address: orderData.customerAddress, district: orderData.customerDistrict }, { merge: true });
     cart = {}; localStorage.setItem('shuvon_cart', JSON.stringify(cart)); updateCartUI();
     ['custTrxId','custPaidAmount'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('orderResultBody').innerHTML =
@@ -1422,7 +1440,7 @@ window.openOrdersAdmin = async () => {
       return `<div class="order-card">
         <span class="status-badge ${o.status}">${orderStatusLabel(o.status)}</span>
         <p style="margin-top:8px; font-weight:600;">${escapeHtml(o.customerName)} — ${escapeHtml(o.customerPhone)}</p>
-        <p style="font-size:0.85rem; color:var(--ink-soft);">${escapeHtml(o.customerAddress)}, ${escapeHtml(o.customerDistrict)}</p>
+        <p style="font-size:0.85rem; color:var(--ink-soft);">${escapeHtml(o.customerAddress)}, ${escapeHtml(o.customerUpazila || '')}, ${escapeHtml(o.customerDistrict)}</p>
         <p style="font-size:0.85rem; margin-top:4px;">মোট: ৳${o.grandTotal} | TrxID: ${escapeHtml(o.paymentTrxId)} | পাঠিয়েছে: ৳${o.paymentAmountEntered}</p>
         <div class="field" style="margin-top:10px;"><label>ট্র্যাকিং লিংক</label><input type="url" value="${escapeHtml(o.trackingUrl||'')}" id="track_${d.id}" placeholder="https://..."></div>
         <div class="field"><label>স্ট্যাটাস</label>
@@ -1513,7 +1531,7 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
     
     const bkashClean = document.getElementById('setBkashNumber').value.replace(/[^0-9]/g,'');
     if(!/^01[3-9][0-9]{8}$/.test(bkashClean)) {
-       alert("bKash নম্বর সঠিক নয়! (যেমন: 017XXXXXXXX)");
+       alert("bKash নম্বর সঠিক নয়! (যেমন: 017XXXXXXXX)");
        btn.disabled = false; btn.textContent = "সেটিংস সংরক্ষণ করুন";
        return;
     }
