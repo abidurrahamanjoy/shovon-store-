@@ -169,9 +169,8 @@
   .wa-float { bottom: 88px; width: 50px; height: 50px; background: #25D366; color: white; text-decoration: none; }
   .admin-fab { bottom: 148px; width: 50px; height: 50px; background: var(--accent); color: #fff; font-size: 26px; display: none; border: none; }
   .admin-fab.show { display: flex; }
-  .inbox-fab { bottom: 208px; width: 50px; height: 50px; background: var(--ink); color: #fff; }
-  .inbox-fab svg { width: 22px; height: 22px; }
-  .inbox-badge { position:absolute; top:-2px; right:-2px; background: var(--danger); width:14px; height:14px; border-radius:50%; display:none; }
+  .nav-item { position: relative; }
+  .nav-dot { position:absolute; top:-3px; left:calc(50% + 5px); width:11px; height:11px; border-radius:50%; background: var(--danger); border:2px solid var(--paper); display:none; }
 
   .overlay { position: fixed; inset: 0; background: rgba(20,17,12,0.55); opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 80; }
   .overlay.open { opacity: 1; pointer-events: auto; }
@@ -184,6 +183,9 @@
   .drawer-close { font-size: 1.5rem; line-height: 1; padding: 4px; color: var(--ink-soft); }
   .drawer-body { padding: 20px; overflow-y: auto; flex: 1; }
   .drawer-foot { padding: 20px; border-top: 1px solid var(--line); background: var(--paper); }
+  #cartDrawer { overflow-y: auto; }
+  #cartDrawer .drawer-head { position: sticky; top: 0; z-index: 2; background: var(--paper); }
+  #cartDrawer .drawer-body { flex: none; overflow: visible; min-height: 160px; }
 
   /* ফুল-স্ক্রিন প্রোডাক্ট ভিউ (গ্লাস) */
   .fullview { position: fixed; inset: 0; z-index: 95; background: rgba(20,17,12,0.35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity:0; pointer-events:none; transition: opacity 0.25s; overflow-y: auto; }
@@ -330,16 +332,12 @@
 <nav class="bottom-nav glass">
   <a href="#" class="nav-item active" id="navHomeBtn"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>হোম</span></a>
   <a href="#" class="nav-item" id="navFavBtn"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>পছন্দ</span></a>
-  <a href="#" class="nav-item" id="navInboxBtn"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>ইনবক্স</span></a>
+  <a href="#" class="nav-item" id="navInboxBtn"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>ইনবক্স</span><i class="nav-dot" id="navInboxDot"></i></a>
 </nav>
 
 <a href="#" id="floatWaBtn" class="wa-float" target="_blank" aria-label="WhatsApp Chat">
   <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.6.1-.2.3-.7.9-.9 1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.5-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.2-.4.1-.2 0-.3 0-.5-.1-.1-.6-1.5-.8-2-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9.6.3 1.1.4 1.5.6.6.2 1.2.2 1.6.1.5-.1 1.7-.7 1.9-1.3.2-.6.2-1.1.2-1.3-.1-.1-.3-.2-.6-.3z"/><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.6 1.4 5.1L2 22l5-1.4c1.4.8 3.1 1.2 5 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18.2c-1.6 0-3.2-.4-4.5-1.3l-.3-.2-3 .8.8-2.9-.2-.3C4 15 3.5 13.5 3.5 12c0-4.7 3.8-8.5 8.5-8.5s8.5 3.8 8.5 8.5-3.8 8.5-8.5 8.5z"/></svg>
 </a>
-<button id="inboxFabBtn" class="inbox-fab" title="ইনবক্স" style="display:none; position:fixed;">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-  <span class="inbox-badge" id="inboxBadge"></span>
-</button>
 <button id="adminFabBtn" class="admin-fab" title="Add Product">+</button>
 <div id="toast" class="toast">Message</div>
 <div class="overlay" id="overlay"></div>
@@ -387,7 +385,7 @@
 <div class="drawer" id="cartDrawer">
   <div class="drawer-head"><h2>আপনার কার্ট</h2><button class="drawer-close" onclick="closeAllDrawers()">&times;</button></div>
   <div class="drawer-body" id="cartItems"></div>
-  <div class="drawer-foot" style="max-height:75vh; overflow-y:auto;">
+  <div class="drawer-foot">
     <div class="field"><label>জেলা নির্বাচন করুন</label><select id="custDistrict"></select></div>
     <div class="summary-row"><span>পণ্যের মূল্য</span><span id="sumItems">৳ ০</span></div>
     <div class="summary-row"><span>ডেলিভারি চার্জ</span><span id="sumDelivery">৳ ০</span></div>
@@ -625,6 +623,8 @@ let currentViewProductId = null;
 let adminFirstLoad = { orders: true };
 let myOrdersUnsub = null;
 let chatUnsub = null;
+let chatMetaUnsub = null;   // কাস্টমারের নিজের চ্যাটের unread ট্র্যাকার
+let adminChatsUnsub = null; // এডমিনের সব চ্যাটের unread ট্র্যাকার
 let adminInboxUnsub = null;
 let adminChatUnsub = null;
 let openAdminChatUid = null;
@@ -938,7 +938,6 @@ auth.onAuthStateChanged(async user => {
   isAdmin = !!(user && user.uid === STORE_CONFIG.adminUID);
   isCustomer = !!(user && !isAdmin);
   document.getElementById('adminFabBtn').classList.toggle('show', isAdmin);
-  document.getElementById('inboxFabBtn').style.display = isAdmin ? 'flex' : 'none';
 
   if(isAdmin) {
       document.getElementById('adminDrawerTitle').textContent = "এডমিন ড্যাশবোর্ড";
@@ -959,11 +958,20 @@ auth.onAuthStateChanged(async user => {
       document.getElementById('setBgColor').value = SITE_SETTINGS.bgColor || '#FFFFFF';
       document.getElementById('setBgColorField').style.display = (SITE_SETTINGS.bgType||'solid') === 'solid' ? 'block' : 'none';
       startAdminNotificationListeners();
-      db.collection('chats').onSnapshot(snap => {
-        let unread = 0; snap.docs.forEach(d => { if (d.data().unreadByAdmin) unread++; });
-        document.getElementById('inboxBadge').style.display = unread > 0 ? 'block' : 'none';
+      if (adminChatsUnsub) adminChatsUnsub();
+      adminChatsUnsub = db.collection('chats').onSnapshot(snap => {
+        let unread = 0;
+        snap.docs.forEach(d => {
+          if (!d.data().unreadByAdmin) return;
+          // এডমিন এই মুহূর্তে যে চ্যাটটি খুলে দেখছেন, সেটি "সিন" ধরে নাও
+          if (d.id === openAdminChatUid && document.getElementById('adminChatDrawer').classList.contains('open')) {
+            db.collection('chats').doc(d.id).set({ unreadByAdmin: false }, { merge: true }).catch(()=>{});
+          } else unread++;
+        });
+        setInboxDot(unread > 0);
       });
   } else {
+      if (adminChatsUnsub) { adminChatsUnsub(); adminChatsUnsub = null; }
       document.getElementById('adminDrawerTitle').textContent = "এডমিন লগইন";
       document.getElementById('adminLoginFormSection').style.display = 'block';
       document.getElementById('adminMenuSection').style.display = 'none';
@@ -979,8 +987,19 @@ auth.onAuthStateChanged(async user => {
       document.getElementById('profPhone').value = customerProfile.phone || phone;
       document.getElementById('profAddress').value = customerProfile.address || '';
       document.getElementById('profDistrict').value = customerProfile.district || SITE_SETTINGS.ownerDistrict;
+      fillCartFormFromProfile();
       startMyOrdersListener(user.uid);
+      if (chatMetaUnsub) chatMetaUnsub();
+      chatMetaUnsub = db.collection('chats').doc(user.uid).onSnapshot(doc => {
+        const unread = doc.exists && !!doc.data().unreadByCustomer;
+        // কাস্টমার চ্যাট খুলে রাখলে নতুন মেসেজ সাথে সাথে "সিন" ধরে নাও
+        if (unread && document.getElementById('chatDrawer').classList.contains('open')) {
+          db.collection('chats').doc(user.uid).set({ unreadByCustomer: false }, { merge: true }).catch(()=>{});
+        } else setInboxDot(unread);
+      });
   } else {
+      if (chatMetaUnsub) { chatMetaUnsub(); chatMetaUnsub = null; }
+      if (!isAdmin) setInboxDot(false);
       document.getElementById('accountLoggedOutSection').style.display = 'block';
       document.getElementById('accountLoggedInSection').style.display = 'none';
       customerProfile = null;
@@ -1070,6 +1089,7 @@ function linkifyChatText(text) {
   const escaped = escapeHtml(text);
   return escaped.replace(/(https?:\/\/[^\s]+)/g, (url) => `<a href="${url}" target="_blank">🔗 প্রোডাক্টটি দেখুন</a>`);
 }
+function setInboxDot(on) { const el = document.getElementById('navInboxDot'); if (el) el.style.display = on ? 'block' : 'none'; }
 function chatBubbleHtml(m) { return `<div class="chat-bubble ${m.sender}">${linkifyChatText(m.text)}</div>`; }
 
 function startChat() {
@@ -1133,7 +1153,6 @@ async function sendAdminChatMessage(text) {
 }
 document.getElementById('adminChatSendBtn').addEventListener('click', () => { const i = document.getElementById('adminChatInput'); sendAdminChatMessage(i.value); i.value=''; });
 document.getElementById('adminChatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('adminChatSendBtn').click(); });
-document.getElementById('inboxFabBtn').addEventListener('click', () => { openDrawer('adminInboxDrawer'); loadAdminInbox(); });
 
 /* ---------------- Products (live) ---------------- */
 db.collection('products').orderBy('createdAt','desc').onSnapshot(snapshot => {
@@ -1314,8 +1333,8 @@ function openChatAboutProduct(p) {
 /* ---------------- Cart & Checkout ---------------- */
 window.addToCart = (id) => { cart[id] = (cart[id] || 0) + 1; localStorage.setItem('shuvon_cart', JSON.stringify(cart)); updateCartUI(); showToast("কার্টে যোগ করা হয়েছে"); }
 document.getElementById('cartOpenBtn').addEventListener('click', () => {
-  if (!(isCustomer && auth.currentUser)) { openAuthModal(() => { updateCartUI(); openDrawer('cartDrawer'); }); return; }
-  updateCartUI(); openDrawer('cartDrawer');
+  if (!(isCustomer && auth.currentUser)) { openAuthModal(() => { fillCartFormFromProfile(); updateCartUI(); openDrawer('cartDrawer'); }); return; }
+  fillCartFormFromProfile(); updateCartUI(); openDrawer('cartDrawer');
 });
 
 function computeDeliveryCharge() {
@@ -1323,17 +1342,19 @@ function computeDeliveryCharge() {
   return dist === SITE_SETTINGS.ownerDistrict ? Number(SITE_SETTINGS.deliveryChargeInside||0) : Number(SITE_SETTINGS.deliveryChargeOutside||0);
 }
 
-function updateCartUI() {
-  const count = Object.values(cart).reduce((a,b)=>a+b, 0);
-  document.getElementById('cartBadge').textContent = count;
-  document.getElementById('cartBadge').style.display = count > 0 ? 'flex' : 'none';
-
+function fillCartFormFromProfile() {
   if (isCustomer && auth.currentUser && customerProfile) {
     document.getElementById('custName').value = customerProfile.name || '';
     document.getElementById('custPhone').value = customerProfile.phone || '';
     document.getElementById('custAddress').value = customerProfile.address || '';
     document.getElementById('custDistrict').value = customerProfile.district || SITE_SETTINGS.ownerDistrict;
   }
+}
+
+function updateCartUI() {
+  const count = Object.values(cart).reduce((a,b)=>a+b, 0);
+  document.getElementById('cartBadge').textContent = count;
+  document.getElementById('cartBadge').style.display = count > 0 ? 'flex' : 'none';
 
   const ids = Object.keys(cart);
   let itemsTotal = 0;
@@ -1432,148 +1453,4 @@ window.openOrdersAdmin = async () => {
             <option value="payment_mismatch" ${o.status==='payment_mismatch'?'selected':''}>পেমেন্ট মিসম্যাচ</option>
             <option value="processing" ${o.status==='processing'?'selected':''}>প্রসেসিং</option>
             <option value="shipped" ${o.status==='shipped'?'selected':''}>পাঠানো হয়েছে</option>
-            <option value="delivered" ${o.status==='delivered'?'selected':''}>ডেলিভারড</option>
-            <option value="cancelled" ${o.status==='cancelled'?'selected':''}>বাতিল</option>
-          </select>
-        </div>
-        <button class="btn-admin" style="width:100%;" onclick="saveOrderAdmin('${d.id}')">সংরক্ষণ করুন</button>
-      </div>`;
-    }).join('');
-  } catch(e) { body.innerHTML = '<p style="color:var(--danger);">লোড করতে সমস্যা হয়েছে।</p>'; }
-};
-window.saveOrderAdmin = async (id) => {
-  const trackingUrl = document.getElementById(`track_${id}`).value.trim();
-  const status = document.getElementById(`status_${id}`).value;
-  if (trackingUrl && !safeHttpUrl(trackingUrl)) { alert('ট্র্যাকিং লিংক অবশ্যই https:// দিয়ে শুরু হতে হবে।'); return; }
-  try { await db.collection('orders').doc(id).update({ trackingUrl, status, statusUpdatedAt: firebase.firestore.FieldValue.serverTimestamp() }); showToast("অর্ডার আপডেট হয়েছে"); }
-  catch(e) { alert("আপডেট ব্যর্থ: " + e.message); }
-};
-
-/* ---------------- Admin: product form ---------------- */
-document.getElementById('adminFabBtn').addEventListener('click', () => openProductForm(null));
-function renderImgPreviewContainer(urls) {
-  document.getElementById('imgPreviewContainer').innerHTML = urls.map(u => `<img src="${u}" style="height:64px; width:64px; object-fit:cover; border-radius:8px; flex-shrink:0;">`).join('');
-}
-document.getElementById('imgInput').addEventListener('change', (e) => {
-  pendingProductImages = Array.from(e.target.files);
-  if (!pendingProductImages.length) return;
-  const previews = new Array(pendingProductImages.length);
-  let loaded = 0;
-  pendingProductImages.forEach((file, i) => {
-    const reader = new FileReader();
-    reader.onload = ev => { previews[i] = ev.target.result; loaded++; if (loaded === pendingProductImages.length) renderImgPreviewContainer(previews); };
-    reader.readAsDataURL(file);
-  });
-});
-window.openProductForm = (id) => {
-  editingId = id; pendingProductImages = [];
-  const p = id ? PRODUCTS.find(x => x.id === id) : null;
-  document.getElementById('formTitle').textContent = p ? 'পণ্য এডিট করুন' : 'পণ্য যোগ করুন';
-  document.getElementById('pName').value = p ? p.name : '';
-  document.getElementById('pCategory').value = p ? p.category : '';
-  document.getElementById('pPrice').value = p ? p.price : '';
-  document.getElementById('pDesc').value = p ? (p.description || '') : '';
-  document.getElementById('pStock').value = p ? p.stock : 'স্টকে আছে';
-  currentProductImageUrls = p ? (p.images && p.images.length ? p.images : (p.image ? [p.image] : [])) : [];
-  renderImgPreviewContainer(currentProductImageUrls);
-  openDrawer('formDrawer');
-}
-document.getElementById('logoInput').addEventListener('change', (e) => {
-  const file = e.target.files[0]; if(!file) return; pendingLogoFile = file;
-  const reader = new FileReader();
-  reader.onload = ev => { document.getElementById('logoPreview').src = ev.target.result; document.getElementById('logoPreview').style.display = 'block'; };
-  reader.readAsDataURL(file);
-});
-function renderHeroImagesList() {
-  document.getElementById('heroImagesList').innerHTML = draftHeroImages.map((url,i) => `
-    <div style="position:relative; width:70px; height:70px;">
-      <img src="${url}" style="width:100%; height:100%; object-fit:cover; border-radius:10px;">
-      <button onclick="removeDraftHeroImage(${i})" style="position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; background:var(--danger); color:#fff; font-size:11px;">×</button>
-    </div>`).join('');
-}
-window.removeDraftHeroImage = (i) => { draftHeroImages.splice(i,1); renderHeroImagesList(); };
-document.getElementById('heroInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0]; if(!file) return;
-  showToast('ছবি আপলোড হচ্ছে...');
-  try { const url = await uploadToStorage(file, 'hero'); draftHeroImages.push(url); renderHeroImagesList(); showToast('যোগ হয়েছে — সেভ করতে ভুলবেন না'); }
-  catch(err) { alert('আপলোড ব্যর্থ: ' + err.message); }
-  e.target.value = '';
-});
-document.getElementById('setBgType').addEventListener('change', (e) => {
-  document.getElementById('setBgColorField').style.display = e.target.value === 'solid' ? 'block' : 'none';
-});
-
-// সেটিংস সেভ করার লজিক (বিকাশ নম্বর ভ্যালিডেশন সহ)
-document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('saveSettingsBtn');
-  btn.disabled = true; btn.textContent = "সংরক্ষণ হচ্ছে...";
-  try {
-    let waNumClean = document.getElementById('setWaNum').value.replace(/[^0-9]/g,'');
-    if (/^01[3-9][0-9]{8}$/.test(waNumClean)) waNumClean = '88' + waNumClean; // 01XXXXXXXXX -> 8801XXXXXXXXX
-    
-    const bkashClean = document.getElementById('setBkashNumber').value.replace(/[^0-9]/g,'');
-    if(!/^01[3-9][0-9]{8}$/.test(bkashClean)) {
-       alert("bKash নম্বর সঠিক নয়! (যেমন: 017XXXXXXXX)");
-       btn.disabled = false; btn.textContent = "সেটিংস সংরক্ষণ করুন";
-       return;
-    }
-
-    let logoUrlToSave = currentLogoUrl;
-    if(pendingLogoFile) logoUrlToSave = await uploadToStorage(pendingLogoFile, 'store');
-    
-    const heroImagesClean = (draftHeroImages.length ? draftHeroImages : (SITE_SETTINGS.heroImages || [])).filter(Boolean);
-    
-    await db.collection('settings').doc('store_info').set({
-        storeName: document.getElementById('setStoreName').value, whatsappNumber: waNumClean,
-        currency: SITE_SETTINGS.currency || STORE_CONFIG.currency, logoUrl: logoUrlToSave,
-        heroImages: heroImagesClean,
-        heroOverlayColor: firebase.firestore.FieldValue.delete(),
-        heroOverlayOpacity: firebase.firestore.FieldValue.delete(),
-        bgType: document.getElementById('setBgType').value,
-        bgColor: document.getElementById('setBgColor').value,
-        ownerDistrict: document.getElementById('setOwnerDistrict').value,
-        deliveryChargeInside: Number(document.getElementById('setDeliveryInside').value) || 0,
-        deliveryChargeOutside: Number(document.getElementById('setDeliveryOutside').value) || 0,
-        deliveryTimeText: document.getElementById('setDeliveryTime').value,
-        termsText: document.getElementById('setTerms').value, bkashNumber: bkashClean
-    }, {merge: true});
-    
-    closeAllDrawers(); showToast("সেটিংস আপডেট করা হয়েছে");
-  } catch(e) { alert("সংরক্ষণে ত্রুটি হয়েছে: " + e.message); }
-  btn.disabled = false; btn.textContent = "সেটিংস সংরক্ষণ করুন";
-});
-
-document.getElementById('saveProductBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('saveProductBtn');
-  const data = {
-    name: document.getElementById('pName').value, category: document.getElementById('pCategory').value || 'অন্যান্য',
-    price: Number(document.getElementById('pPrice').value), stock: document.getElementById('pStock').value,
-    description: document.getElementById('pDesc').value || '', updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-  if(!data.name || !data.price) return alert("দয়া করে নাম ও দাম পূরণ করুন");
-  btn.disabled = true; btn.textContent = "সংরক্ষণ হচ্ছে...";
-  try {
-    let imageUrls = currentProductImageUrls;
-    if (pendingProductImages.length) {
-      imageUrls = [];
-      for (const file of pendingProductImages) imageUrls.push(await uploadToStorage(file, 'products'));
-    }
-    data.images = imageUrls.slice(0, 6);
-    data.image = imageUrls[0] || 'https://via.placeholder.com/300';
-    if(editingId) await db.collection('products').doc(editingId).set(data, { merge: true });
-    else { data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('products').add(data); }
-    closeAllDrawers(); showToast("সফলভাবে সংরক্ষিত হয়েছে!");
-  } catch(e) { console.error(e); alert("সংরক্ষণে সমস্যা হয়েছে: " + e.message); }
-  btn.disabled = false; btn.textContent = "পণ্য সংরক্ষণ করুন";
-});
-window.deleteProduct = async (id) => {
-  if(confirm("আপনি কি নিশ্চিতভাবে এই পণ্যটি মুছে ফেলতে চান?")) {
-    try { await db.collection('products').doc(id).delete(); showToast("পণ্য মুছে ফেলা হয়েছে"); }
-    catch(e) { alert("মুছে ফেলতে সমস্যা হয়েছে: " + e.message); }
-  }
-}
-
-updateCartUI();
-</script>
-</body>
-</html>
+            <option value="delivered" ${o.status
