@@ -13,6 +13,8 @@
  *    তাই এই স্ক্রিপ্টটা রান করলে বর্তমান সব প্রোডাক্ট থেকে টাটকা
  *    sitemap.xml তৈরি হবে।
  *
+ * Product URL style defaults to query URLs for GitHub Pages compatibility.
+ * For Firebase Hosting/custom domains you may use PRODUCT_URL_STYLE=path.
  * চালানোর নিয়ম (প্রজেক্ট ফোল্ডারে গিয়ে):
  *    node scripts/generate-sitemap.js
  * (Node.js 18+ দরকার — বিল্ট-ইন fetch ব্যবহার করে, কোনো npm install লাগে না)
@@ -28,8 +30,9 @@ const fs = require('fs');
 const path = require('path');
 
 // ---- এই দুইটা প্রয়োজনে বদলে নিন ----
-const SITE_URL = 'https://shovon-store.web.app'; // কাস্টম ডোমেইন থাকলে সেটা বসান
-const PROJECT_ID = 'shovon-store';               // firebase-config.js-এর projectId
+const SITE_URL = (process.env.SITE_URL || 'https://shovon-store.web.app').replace(/\/$/, '');
+const PRODUCT_URL_STYLE = process.env.PRODUCT_URL_STYLE || 'query';
+const PROJECT_ID = process.env.PROJECT_ID || 'shovon-store';
 // -------------------------------------
 
 const OUTPUT_FILE = path.join(__dirname, '..', 'sitemap.xml');
@@ -72,7 +75,9 @@ function buildSitemapXml(products) {
 
   products.forEach(p => {
     if (!p.name) return; // নাম না থাকলে বাদ (এমন হওয়ার কথা না, তবু নিরাপত্তার জন্য)
-    const loc = `${SITE_URL}/product/${p.id}/${slugify(p.name)}`;
+    const loc = PRODUCT_URL_STYLE === 'path'
+      ? `${SITE_URL}/product/${p.id}/${slugify(p.name)}`
+      : `${SITE_URL}/?p=${encodeURIComponent(p.id)}`;
     const lastmod = p.updateTime ? String(p.updateTime).slice(0, 10) : today;
     urlEntries.push(
       `  <url>\n    <loc>${loc}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n    <lastmod>${lastmod}</lastmod>\n  </url>`
