@@ -1,44 +1,64 @@
-const CACHE_NAME = 'shuvon-store-v4'; // Cache version bumped after security/performance updates
-const APP_SHELL = ['/', '/index.html', '/manifest.json'];
+const CACHE_NAME = 'shuvon-store-v6';
+const APP_SHELL = ['/', '/index.html', '/styles.css', '/app.js', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 
-self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(APP_SHELL))
+      .catch(() => {})
+  );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => Promise.all(
+      keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+    )).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// HTML পেজ সবসময় আগে নেটওয়ার্ক থেকে আনার চেষ্টা করে (যাতে নতুন ডিপ্লয় সাথে সাথে দেখা যায়),
-// নেট না থাকলে ক্যাশে ফিরে যায়। অন্য স্ট্যাটিক ফাইল (CSS/JS/ম্যানিফেস্ট) আগের মতোই cache-first।
-self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
-  const url = new URL(e.request.url);
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
-  if (e.request.mode === 'navigate') {
-    e.respondWith(
-      fetch(e.request).then(res => {
-        caches.open(CACHE_NAME).then(cache => cache.put(e.request, res.clone()));
-        return res;
-      }).catch(() => caches.match(e.request).then(cached => cached || caches.match('/index.html')))
-    );
+
+  // HTML: cache-first for instant repeat visits, then refresh in background.
+  // The new service-worker version invalidates the old shell after deployment.
+  if (event.request.mode === 'navigate') {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match('/index.html');
+      const network = fetch(event.request).then((response) => {
+        if (response.ok) cache.put('/index.html', response.clone());
+        return response;
+      }).catch(() => null);
+      return cached || await network || new Response('Offline', { status: 503 });
+    })());
     return;
   }
-  // Configuration must refresh from the network after deployment, but still work offline.
+
+  // Firebase configuration should refresh after every deployment, with cache fallback offline.
   if (url.pathname === '/firebase-config.js') {
-    e.respondWith(
-      fetch(e.request).then(res => {
-        if (res.ok) caches.open(CACHE_NAME).then(cache => cache.put(e.request, res.clone()));
-        return res;
-      }).catch(() => caches.match(e.request))
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
+        return response;
+      }).catch(() => caches.match(event.request))
     );
     return;
   }
-  e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => { if (res.ok) caches.open(CACHE_NAME).then(cache => cache.put(e.request, res.clone())); return res; }).catch(() => caches.match('/index.html')))
+
+  // Static same-origin assets: cache-first for speed.
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
+        if (response.ok) {
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
+        }
+        return response;
+      });
+    })
   );
 });
