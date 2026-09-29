@@ -71,11 +71,11 @@ let pendingLogoFile = null, currentLogoUrl = "";
 let draftHeroImages = [];
 
 let SITE_SETTINGS = {
-    storeName: STORE_CONFIG.storeName || "শোভন স্টোর",
+    storeName: STORE_CONFIG.storeName || "আমার শপ",
     storeAddress: STORE_CONFIG.storeAddress || "",
-    contactNumber: STORE_CONFIG.contactNumber || "",
+    contactNumber: STORE_CONFIG.contactNumber || "01786689656",
     websiteUrl: STORE_CONFIG.siteUrl || "https://abidurrahamanjoy.github.io/shovon-store-/",
-    whatsappNumber: STORE_CONFIG.whatsappNumber || "8801779088009",
+    whatsappNumber: STORE_CONFIG.whatsappNumber || "01786689656",
     currency: STORE_CONFIG.currency || "৳",
     logoUrl: "", heroImageUrl: "",
     ownerDistrict: "হবিগঞ্জ",
