@@ -907,13 +907,13 @@ document.getElementById('checkoutBtn').addEventListener('click', async () => {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    const ref = await db.collection('orders').add(orderData);
-    await db.collection('customers').doc(auth.currentUser.uid).set({ 
-        name: orderData.customerName, 
-        upazila: orderData.customerUpazila, 
-        address: orderData.customerAddress, 
-        district: orderData.customerDistrict 
-    }, { merge: true });
+       const ref = await db.collection('orders').add(orderData);
+    
+    cart = {}; localStorage.setItem('shuvon_cart', JSON.stringify(cart)); updateCartUI();
+    ['custTrxId','custPaidAmount'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('orderResultBody').innerHTML =
+      `<div class="order-card"><span class="status-badge pending_payment">পেমেন্ট যাচাই হচ্ছে</span><p style="margin-top:12px;">আপনার অর্ডার আইডি: <b>${ref.id}</b></p><p style="margin-top:6px; font-size:0.85rem; color:var(--ink-soft);">TrxID ও পেমেন্টের পরিমাণ মালিক যাচাই করার পর অর্ডার নিশ্চিত হবে। "অ্যাকাউন্ট" থেকে স্ট্যাটাস দেখতে পারবেন। ডেলিভারি সময়: ${SITE_SETTINGS.deliveryTimeText}</p></div>`;
+    openDrawer('orderResultDrawer');
     
     cart = {}; localStorage.setItem('shuvon_cart', JSON.stringify(cart)); updateCartUI();
     ['custTrxId','custPaidAmount'].forEach(id => document.getElementById(id).value = '');
