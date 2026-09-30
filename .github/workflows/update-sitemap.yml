@@ -12,7 +12,7 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: write   # sitemap.xml কমিট করে ফেরত পুশ করার জন্য দরকার
+  contents: write   # sitemap.xml ও product SEO pages কমিট করে ফেরত পুশ করার জন্য দরকার
 
 jobs:
   update-sitemap:
@@ -33,7 +33,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add sitemap.xml
+          git add sitemap.xml product/
           if git diff --cached --quiet; then
             echo "sitemap.xml-এ কোনো পরিবর্তন নেই, কমিট করার দরকার নেই।"
           else
