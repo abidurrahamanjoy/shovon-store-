@@ -247,9 +247,16 @@
     <button class="btn-block" onclick="openProductForm(null)">নতুন পণ্য যোগ করুন</button>
     <button class="btn-block btn-outline" onclick="openOrdersAdmin()">অর্ডার সমূহ</button>
     <button class="btn-block btn-outline" onclick="closeAllDrawers(); openDrawer('adminInboxDrawer'); loadAdminInbox();">Inbox</button>
+    <button class="btn-block btn-outline" onclick="closeAllDrawers(); openDrawer('analyticsDrawer'); loadAdminAnalytics();">📊 Analytics</button>
     <button class="btn-block btn-outline" onclick="openDrawer('settingsDrawer')">স্টোর সেটিংস</button>
     <button class="btn-block btn-outline" id="logoutBtn" style="color: #C0392B; border-color: #C0392B;">লগআউট</button>
   </div>
+</div>
+
+<div class="drawer" id="analyticsDrawer">
+  <div class="drawer-head"><h2>📊 Analytics</h2><button class="drawer-close" onclick="closeAllDrawers()">&times;</button></div>
+  <div class="drawer-body" id="analyticsBody"></div>
+  <div class="drawer-foot"><button class="btn-block" onclick="loadAdminAnalytics()">↻ Refresh</button></div>
 </div>
 
 <div class="drawer" id="ordersAdminDrawer">

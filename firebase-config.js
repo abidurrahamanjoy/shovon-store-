@@ -7,7 +7,7 @@ const STORE_CONFIG = {
   whatsappNumber: "8801786689656",
   currency: "৳",
   // Production/handover URL. Change this when the client uses a custom domain.
-  siteUrl: "", // Optional: set the production/custom-domain URL; blank = current hosting URL
+  siteUrl: "https://shovon-store.web.app", // Production URL
   adminUID: "h8Dz1CPX4ghH3VLSr7XWZU0lvJC2",
 
   /* ছবি হোস্টিং — Cloudinary (ফ্রি, কোনো কার্ড লাগে না, আনলিমিটেডের কাছাকাছি
@@ -32,7 +32,7 @@ const STORE_CONFIG = {
 
   /* Google Analytics (ঐচ্ছিক, ফ্রি) — analytics.google.com থেকে
      Measurement ID (G-XXXXXXX ফরম্যাট) নিয়ে বসালে ভিজিটর ট্র্যাকিং চালু হবে। */
-  googleAnalyticsId: ""
+  googleAnalyticsId: "G-JQZWBZKWW5"
 };
 
 const firebaseConfig = {

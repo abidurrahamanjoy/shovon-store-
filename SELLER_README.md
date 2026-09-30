@@ -73,3 +73,7 @@ The buyer should move the project to their own Firebase project and Cloudinary a
 - This works when the store is hosted at a GitHub Pages subpath such as `/joy/`, where root-relative `/product/...` links would otherwise open GitHub Pages 404.
 - The app also detects its current base path automatically.
 - If a client later wants pretty `/product/id/slug` URLs on Firebase Hosting, the sitemap generator supports `PRODUCT_URL_STYLE=path`; Firebase Hosting's catch-all rewrite is already included.
+
+
+### অর্ডার আইডি
+নতুন অর্ডারের আইডি ৪-সংখ্যা দিয়ে শুরু হবে: 1001, 1002, 1003 ...। একই Firestore transaction-এ counter ও order লেখা হয়, তাই একই সময়ে একাধিক অর্ডার এলেও নতুন ID একই হওয়ার কথা নয়।

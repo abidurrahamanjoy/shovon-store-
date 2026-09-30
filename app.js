@@ -32,7 +32,7 @@ const db = firebase.firestore();
 const CUSTOMER_EMAIL_DOMAIN = "@shuvon.customer";
 const SITE_URL = siteUrl();
 
-if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register(new URL('sw.js', siteUrl() + '/').href).catch(()=>{})); }
 
 if (STORE_CONFIG.googleAnalyticsId) {
   const s = document.createElement('script'); s.async = true; s.src = `https://www.googletagmanager.com/gtag/js?id=${STORE_CONFIG.googleAnalyticsId}`;
@@ -40,6 +40,79 @@ if (STORE_CONFIG.googleAnalyticsId) {
   window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date()); gtag('config', STORE_CONFIG.googleAnalyticsId);
 }
+
+/* ---------------- ANALYTICS ----------------
+   Google Analytics handles visitor/page/product events. Firestore stores a small
+   owner-only counter for the Admin dashboard. Public users never get read access.
+*/
+let analyticsReady = false;
+function gaEvent(name, params = {}) {
+  try { if (typeof gtag === 'function') gtag('event', name, params); } catch (_) {}
+}
+function analyticsDateId(d = new Date()) {
+  const y = d.getFullYear(); const m = String(d.getMonth()+1).padStart(2,'0'); const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+async function incrementAnalyticsDoc(ref, initialData) {
+  try {
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      const oldViews = snap.exists ? Number(snap.data().views || 0) : 0;
+      const data = snap.exists ? { views: oldViews + 1, updatedAt: firebase.firestore.FieldValue.serverTimestamp() } : { ...initialData, views: 1, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+      tx.set(ref, data, { merge: true });
+    });
+    return true;
+  } catch (e) { console.warn('Analytics counter failed:', e); return false; }
+}
+async function trackSiteVisit() {
+  if (sessionStorage.getItem('shuvon_site_visit_tracked') === '1') return;
+  sessionStorage.setItem('shuvon_site_visit_tracked', '1');
+  analyticsReady = true;
+  gaEvent('store_visit');
+  const today = analyticsDateId();
+  await Promise.all([
+    incrementAnalyticsDoc(db.collection('analytics').doc('site'), { views: 0 }),
+    incrementAnalyticsDoc(db.collection('analyticsDaily').doc(today), { views: 0 })
+  ]);
+}
+async function trackProductView(p) {
+  if (!p || !p.id) return;
+  const key = `shuvon_product_view_${p.id}`;
+  if (sessionStorage.getItem(key) === '1') return;
+  sessionStorage.setItem(key, '1');
+  gaEvent('view_item', { currency: 'BDT', value: Number(p.price || 0), items: [{ item_id: String(p.id), item_name: p.name || '' }] });
+  await incrementAnalyticsDoc(db.collection('analyticsProducts').doc(String(p.id)), { name: String(p.name || '').slice(0,120), views: 0 });
+}
+async function loadAdminAnalytics() {
+  if (!isAdmin) return;
+  const body = document.getElementById('analyticsBody');
+  if (!body) return;
+  body.innerHTML = '<p style="color:var(--ink-soft);">Analytics লোড হচ্ছে...</p>';
+  try {
+    const [siteSnap, dailySnap, productsSnap] = await Promise.all([
+      db.collection('analytics').doc('site').get(),
+      db.collection('analyticsDaily').orderBy('updatedAt','desc').limit(30).get(),
+      db.collection('analyticsProducts').orderBy('views','desc').limit(10).get()
+    ]);
+    const total = siteSnap.exists ? Number(siteSnap.data().views || 0) : 0;
+    const daily = dailySnap.docs.map(d => ({ id:d.id, views:Number(d.data().views || 0) }));
+    const now = new Date();
+    const dayOffset = (days) => {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - days);
+      return analyticsDateId(d);
+    };
+    const last7Start = dayOffset(6);
+    const last30Start = dayOffset(29);
+    const last7 = daily.filter(x => x.id >= last7Start).reduce((n,x)=>n+x.views,0);
+    const last30 = daily.filter(x => x.id >= last30Start).reduce((n,x)=>n+x.views,0);
+    const rows = productsSnap.docs.map((d,i) => `<div style="display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #eee;"><b style="width:24px;">${i+1}</b><span style="flex:1;">${escapeHtml(d.data().name || d.id)}</span><strong>${Number(d.data().views||0).toLocaleString('en-US')}</strong></div>`).join('') || '<p style="color:var(--ink-soft);">এখনো কোনো product view নেই।</p>';
+    body.innerHTML = `<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px;"><div class="glass-card" style="padding:14px;"><small>মোট ভিজিট</small><div style="font-size:1.5rem;font-weight:800;">${total.toLocaleString('en-US')}</div></div><div class="glass-card" style="padding:14px;"><small>আজ</small><div style="font-size:1.5rem;font-weight:800;">${(daily.find(x=>x.id===analyticsDateId())?.views||0).toLocaleString('en-US')}</div></div><div class="glass-card" style="padding:14px;"><small>গত ৭ দিন</small><div style="font-size:1.5rem;font-weight:800;">${last7.toLocaleString('en-US')}</div></div><div class="glass-card" style="padding:14px;"><small>গত ৩০ দিন</small><div style="font-size:1.5rem;font-weight:800;">${last30.toLocaleString('en-US')}</div></div></div><h3 style="margin:8px 0 4px;">সবচেয়ে বেশি দেখা পণ্য</h3><div>${rows}</div><p style="font-size:.75rem;color:var(--ink-soft);margin-top:14px;">Google Analytics-এ আরও বিস্তারিত audience, traffic source ও real-time data পাওয়া যাবে।</p>`;
+  } catch (e) {
+    console.error(e);
+    body.innerHTML = '<p style="color:#C0392B;">Analytics লোড করা যায়নি। Firestore Rules ও Admin login পরীক্ষা করুন।</p>';
+  }
+}
+window.loadAdminAnalytics = loadAdminAnalytics;
 
 const BD_DISTRICTS = ["ঢাকা","ফরিদপুর","গাজীপুর","গোপালগঞ্জ","কিশোরগঞ্জ","মাদারীপুর","মানিকগঞ্জ","মুন্সিগঞ্জ","নারায়ণগঞ্জ","নরসিংদী","রাজবাড়ী","শরীয়তপুর","টাঙ্গাইল","বাগেরহাট","চুয়াডাঙ্গা","যশোর","ঝিনাইদহ","খুলনা","কুষ্টিয়া","মাগুরা","মেহেরপুর","নড়াইল","সাতক্ষীরা","বরগুনা","বরিশাল","ভোলা","ঝালকাঠি","পটুয়াখালী","পিরোজপুর","বান্দরবান","ব্রাহ্মণবাড়িয়া","চাঁদপুর","চট্টগ্রাম","কুমিল্লা","কক্সবাজার","ফেনী","খাগড়াছড়ি","লক্ষ্মীপুর","নোয়াখালী","রাঙ্গামাটি","জামালপুর","ময়মনসিংহ","নেত্রকোণা","শেরপুর","বগুড়া","জয়পুরহাট","নওগাঁ","নাটোর","চাঁপাইনবাবগঞ্জ","পাবনা","রাজশাহী","সিরাজগঞ্জ","দিনাজপুর","গাইবান্ধা","কুড়িগ্রাম","লালমনিরহাট","নীলফামারী","পঞ্চগড়","রংপুর","ঠাকুরগাঁও","হবিগঞ্জ","মৌলভীবাজার","সুনামগঞ্জ","সিলেট"];
 
@@ -183,11 +256,14 @@ function siteUrl() {
 }
 function productAppUrl(id) {
   // Use the configured site URL so Inbox/product links keep the GitHub Pages /joy/ path.
-  return `${siteUrl()}/?p=${encodeURIComponent(id)}`;
+  return `${siteUrl()}/product/${encodeURIComponent(id)}/${slugify(nameForUrl(id))}/`;
+}
+function nameForUrl(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  return p ? p.name : id;
 }
 function productSeoUrl(id, name) {
-  // Keep canonical/share URLs on the same configured base path.
-  return `${siteUrl()}/?p=${encodeURIComponent(id)}`;
+  return `${siteUrl()}/product/${encodeURIComponent(id)}/${slugify(name)}/`;
 }
 
 
@@ -295,6 +371,9 @@ db.collection('settings').doc('store_info').onSnapshot(doc => {
     updateSiteInfoUI();
     updateCartUI();
 });
+
+// Count one website visit per browser session.
+trackSiteVisit();
 
 function updateSeoSiteUrl() {
     const base = siteUrl();
@@ -713,6 +792,7 @@ window.openFullview = (id, skipHistory) => {
   const p = PRODUCTS.find(x => x.id === id);
   if (!p) return;
   currentViewProductId = id;
+  trackProductView(p);
   document.getElementById('fvName').textContent = p.name;
   document.getElementById('fvPrice').textContent = `৳${p.price}`;
   document.getElementById('fvDesc').textContent = p.description || 'এই পণ্যের বিস্তারিত বিবরণ এখনো যোগ করা হয়নি।';
@@ -746,7 +826,7 @@ window.openFullview = (id, skipHistory) => {
     "description":p.description || p.name,
     "offers":{"@type":"Offer","priceCurrency":"BDT","price":p.price,"availability": p.stock==='স্টক নেই' ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"}
   });
-  if (!skipHistory) history.pushState({productId:id}, '', `?p=${encodeURIComponent(id)}`);
+  if (!skipHistory) history.pushState({productId:id}, '', `/product/${encodeURIComponent(id)}/${slugify(p.name)}/`);
 };
 function slugify(s) { return encodeURIComponent(String(s||'').trim().replace(/\s+/g,'-')).slice(0,60); }
 window.closeFullview = () => {
@@ -758,7 +838,7 @@ window.closeFullview = () => {
   document.getElementById('canonicalLink').setAttribute('href', siteUrl() + '/');
   document.getElementById('ogUrlTag').setAttribute('content', siteUrl() + '/');
   document.getElementById('ogImageTag').setAttribute('content', siteUrl() + '/icon-512.png');
-  if (getProductIdFromLocation()) history.pushState({}, '', `${appBaseUrl()}/`);
+  if (getProductIdFromLocation()) history.pushState({}, '', `${siteUrl()}/`);
 };
 // পুরনো শেয়ার-লিংক (?p=id) এবং নতুন পাথ-স্টাইল লিংক (/product/id/slug) — দুটোই সাপোর্ট করে
 function getProductIdFromLocation() {
@@ -907,18 +987,40 @@ document.getElementById('checkoutBtn').addEventListener('click', async () => {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-       const ref = await db.collection('orders').add(orderData);
+    // ক্রমিক ৪-সংখ্যার Order ID: 1001, 1002, 1003 ...
+    // Counter ও order একই transaction-এ লেখা হয়, তাই একসাথে একাধিক অর্ডার এলেও ID duplicate হবে না।
+    const counterRef = db.collection('settings').doc('order_counter');
+    let ref;
+    let orderNumber;
+    await db.runTransaction(async tx => {
+      const counterSnap = await tx.get(counterRef);
+      const currentNumber = counterSnap.exists ? Number(counterSnap.data().currentNumber || 1000) : 1000;
+      const nextNumber = currentNumber + 1;
+      if (!Number.isInteger(nextNumber) || nextNumber < 1001 || nextNumber > 999999999) {
+        throw new Error('Order ID counter সীমায় পৌঁছে গেছে।');
+      }
+      const orderRef = db.collection('orders').doc(String(nextNumber));
+      const existingOrder = await tx.get(orderRef);
+      if (existingOrder.exists) throw new Error('Order ID conflict হয়েছে, আবার চেষ্টা করুন।');
+      tx.set(orderRef, orderData);
+      tx.set(counterRef, {
+        currentNumber: nextNumber,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      ref = orderRef;
+      orderNumber = String(nextNumber);
+    });
     
     cart = {}; localStorage.setItem('shuvon_cart', JSON.stringify(cart)); updateCartUI();
     ['custTrxId','custPaidAmount'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('orderResultBody').innerHTML =
-      `<div class="order-card"><span class="status-badge pending_payment">পেমেন্ট যাচাই হচ্ছে</span><p style="margin-top:12px;">আপনার অর্ডার আইডি: <b>${ref.id}</b></p><p style="margin-top:6px; font-size:0.85rem; color:var(--ink-soft);">TrxID ও পেমেন্টের পরিমাণ মালিক যাচাই করার পর অর্ডার নিশ্চিত হবে। "অ্যাকাউন্ট" থেকে স্ট্যাটাস দেখতে পারবেন। ডেলিভারি সময়: ${SITE_SETTINGS.deliveryTimeText}</p></div>`;
+      `<div class="order-card"><span class="status-badge pending_payment">পেমেন্ট যাচাই হচ্ছে</span><p style="margin-top:12px;">আপনার অর্ডার আইডি: <b>${orderNumber}</b></p><p style="margin-top:6px; font-size:0.85rem; color:var(--ink-soft);">TrxID ও পেমেন্টের পরিমাণ মালিক যাচাই করার পর অর্ডার নিশ্চিত হবে। "অ্যাকাউন্ট" থেকে স্ট্যাটাস দেখতে পারবেন। ডেলিভারি সময়: ${SITE_SETTINGS.deliveryTimeText}</p></div>`;
     openDrawer('orderResultDrawer');
     
     cart = {}; localStorage.setItem('shuvon_cart', JSON.stringify(cart)); updateCartUI();
     ['custTrxId','custPaidAmount'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('orderResultBody').innerHTML =
-      `<div class="order-card"><span class="status-badge pending_payment">পেমেন্ট যাচাই হচ্ছে</span><p style="margin-top:12px;">আপনার অর্ডার আইডি: <b>${ref.id}</b></p><p style="margin-top:6px; font-size:0.85rem; color:var(--ink-soft);">TrxID ও পেমেন্টের পরিমাণ মালিক যাচাই করার পর অর্ডার নিশ্চিত হবে। "অ্যাকাউন্ট" থেকে স্ট্যাটাস দেখতে পারবেন। ডেলিভারি সময়: ${SITE_SETTINGS.deliveryTimeText}</p></div>`;
+      `<div class="order-card"><span class="status-badge pending_payment">পেমেন্ট যাচাই হচ্ছে</span><p style="margin-top:12px;">আপনার অর্ডার আইডি: <b>${orderNumber}</b></p><p style="margin-top:6px; font-size:0.85rem; color:var(--ink-soft);">TrxID ও পেমেন্টের পরিমাণ মালিক যাচাই করার পর অর্ডার নিশ্চিত হবে। "অ্যাকাউন্ট" থেকে স্ট্যাটাস দেখতে পারবেন। ডেলিভারি সময়: ${SITE_SETTINGS.deliveryTimeText}</p></div>`;
     openDrawer('orderResultDrawer');
   } catch(e) { 
     console.error(e);
