@@ -2,6 +2,12 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
+<script>
+/* পুরনো GitHub Pages ঠিকানা থেকে নতুন ঠিকানায় পাঠানো */
+if (location.hostname.endsWith('github.io')) {
+  location.replace('https://shovon-store.web.app' + location.pathname.replace(/^\/shovon-store-/, '') + location.search + location.hash);
+}
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title id="pageTitle">আমার শপ | স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য</title>
 
@@ -15,7 +21,7 @@
 <meta property="og:locale" content="bn_BD">
 <meta id="ogUrlTag" property="og:url" content="https://shovon-store.web.app/">
 <meta id="ogTitleTag" property="og:title" content="আমার শপ | স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য">
-<meta id="ogDescTag" property="og:description" content="সেরা মানের স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য, bKash পেমেন্টে, সারাদেশে ডেলিভারি।">
+<meta id="ogDescTag" property="og:description" content="সেরা মানের নিত্যপ্রয়োজনীয় পণ্য, bKash/অনলাইন পেমেন্টে, সারাদেশে ডেলিভারি।">
 <meta id="ogImageTag" property="og:image" content="https://shovon-store.web.app/icon-512.png">
 <meta name="theme-color" content="#C4702E">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -163,7 +169,7 @@
     <div class="field"><textarea id="custAddress" placeholder="ডেলিভারি ঠিকানা" rows="2"></textarea></div>
 
     <div class="pay-box">
-      দয়া করে কোন ধরণের পেমেন্ট করবেন না এই মুহুর্তে <b id="payBkashNumber">-</b> নম্বরে bKash <b>Send Money</b> করে,
+      নোটঃ এইখানে ম্যানুয়াল পদ্ধতি এড করা আছে। আপনার বিকাশ, নগদ, রকেট ইত্যাদি এর মার্চেন্ট API থাকলে অটো পেমেন্ট সিস্টেম এড করা যাবে। দয়া করে কোন ধরণের পেমেন্ট করবেন না এই মুহুর্তে <b id="payBkashNumber">-</b> নম্বরে bKash <b>Send Money</b> করে,
       ঠিক <b id="payAmountHint">৳ ০</b> টাকা পাঠা্নোর প্রয়োজন নেই । ডেলিভারি সময়: <span id="payDeliveryTime">-</span>
     </div>
     <div class="field"><input type="text" id="custTrxId" placeholder="bKash TrxID"></div>
@@ -193,7 +199,7 @@
   </div>
   <div class="drawer-body" id="accountLoggedInSection" style="display:none;">
     <div class="notif-toggle"><span>🔔 নোটিফিকেশন</span><button class="btn-admin" id="enableNotifBtn" style="flex:none; padding:8px 14px;">চালু করুন</button></div>
-    <button class="btn-block btn-outline" onclick="openDrawer('chatDrawer'); startChat();">💬 মালিকের সাথে কথা বলুন</button>
+    <button class="btn-block btn-outline" onclick="openDrawer('chatDrawer'); startChat();">💬 বিক্রয় প্রতিনিধির সাথে কথা বলুন</button>
     <div class="profile-box">
       <div class="field"><label>নাম</label><input type="text" id="profName"></div>
       <div class="field"><label>ফোন</label><input type="text" id="profPhone" disabled></div>
