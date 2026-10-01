@@ -9,19 +9,19 @@ if (location.hostname.endsWith('github.io')) {
 }
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title id="pageTitle">আমার শপ | স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য</title>
+<title id="pageTitle">শোভন স্টোর (Shovon Store) | স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য</title>
 
-<meta id="metaDesc" name="description" content="আমার শপ থেকে সেরা মানের স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন — bKash পেমেন্ট, দ্রুত ডেলিভারি, সারাদেশে।">
+<meta id="metaDesc" name="description" content="শোভন স্টোর (Shovon Store) — হবিগঞ্জের অনলাইন শপ। সেরা মানের নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন, bKash পেমেন্ট, সারাদেশে ডেলিভারি।">
 <meta name="robots" content="index, follow">
 <link id="canonicalLink" rel="canonical" href="https://shovon-store.web.app/">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="color-scheme" content="light">
 <meta id="ogTitle" property="og:type" content="website">
-<meta property="og:site_name" content="আমার শপ">
+<meta property="og:site_name" content="শোভন স্টোর (Shovon Store)">
 <meta property="og:locale" content="bn_BD">
 <meta id="ogUrlTag" property="og:url" content="https://shovon-store.web.app/">
-<meta id="ogTitleTag" property="og:title" content="আমার শপ | স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য">
-<meta id="ogDescTag" property="og:description" content="সেরা মানের নিত্যপ্রয়োজনীয় পণ্য, bKash/অনলাইন পেমেন্টে, সারাদেশে ডেলিভারি।">
+<meta id="ogTitleTag" property="og:title" content="শোভন স্টোর (Shovon Store) | স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য">
+<meta id="ogDescTag" property="og:description" content="সেরা মানের নিত্যপ্রয়োজনীয় পণ্য, সারাদেশে ডেলিভারি।">
 <meta id="ogImageTag" property="og:image" content="https://shovon-store.web.app/icon-512.png">
 <meta name="theme-color" content="#C4702E">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -31,11 +31,27 @@ if (location.hostname.endsWith('github.io')) {
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "OnlineStore",
-  "name": "আমার শপ",
-  "url": "https://shovon-store.web.app/",
-  "image": "https://shovon-store.web.app/icon-512.png",
-  "description": "আমার শপ থেকে সেরা মানের নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন — bKash পেমেন্ট, দ্রুত ডেলিভারি, সারাদেশে।"
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://shovon-store.web.app/#website",
+      "url": "https://shovon-store.web.app/",
+      "name": "শোভন স্টোর",
+      "alternateName": ["Shovon Store", "শোভন স্টোর (Shovon Store)"],
+      "inLanguage": "bn"
+    },
+    {
+      "@type": "OnlineStore",
+      "@id": "https://shovon-store.web.app/#store",
+      "name": "শোভন স্টোর",
+      "alternateName": ["Shovon Store"],
+      "url": "https://shovon-store.web.app/",
+      "image": "https://shovon-store.web.app/icon-512.png",
+      "description": "শোভন স্টোর (Shovon Store) থেকে সেরা মানের নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন — দ্রুত ডেলিভারি, সারাদেশে।",
+      "address": { "@type": "PostalAddress", "addressLocality": "হবিগঞ্জ", "addressCountry": "BD" },
+      "areaServed": "BD"
+    }
+  ]
 }
 </script>
 
@@ -56,7 +72,7 @@ if (location.hostname.endsWith('github.io')) {
     </button>
     <div class="brand">
       <img id="siteLogoImg" src="" style="display:none;" alt="Logo">
-      <span id="siteStoreName">আমার শপ</span>
+      <span id="siteStoreName">শোভন স্টোর</span>
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="searchOpenBtn" aria-label="খুঁজুন">
@@ -169,7 +185,7 @@ if (location.hostname.endsWith('github.io')) {
     <div class="field"><textarea id="custAddress" placeholder="ডেলিভারি ঠিকানা" rows="2"></textarea></div>
 
     <div class="pay-box">
-      নোটঃ এইখানে ম্যানুয়াল পদ্ধতি এড করা আছে। আপনার বিকাশ, নগদ, রকেট ইত্যাদি এর মার্চেন্ট API থাকলে অটো পেমেন্ট সিস্টেম এড করা যাবে। দয়া করে কোন ধরণের পেমেন্ট করবেন না এই মুহুর্তে <b id="payBkashNumber">-</b> নম্বরে bKash <b>Send Money</b> করে,
+      দয়া করে কোন ধরণের পেমেন্ট করবেন না এই মুহুর্তে <b id="payBkashNumber">-</b> নম্বরে bKash <b>Send Money</b> করে,
       ঠিক <b id="payAmountHint">৳ ০</b> টাকা পাঠা্নোর প্রয়োজন নেই । ডেলিভারি সময়: <span id="payDeliveryTime">-</span>
     </div>
     <div class="field"><input type="text" id="custTrxId" placeholder="bKash TrxID"></div>
@@ -199,7 +215,7 @@ if (location.hostname.endsWith('github.io')) {
   </div>
   <div class="drawer-body" id="accountLoggedInSection" style="display:none;">
     <div class="notif-toggle"><span>🔔 নোটিফিকেশন</span><button class="btn-admin" id="enableNotifBtn" style="flex:none; padding:8px 14px;">চালু করুন</button></div>
-    <button class="btn-block btn-outline" onclick="openDrawer('chatDrawer'); startChat();">💬 বিক্রয় প্রতিনিধির সাথে কথা বলুন</button>
+    <button class="btn-block btn-outline" onclick="openDrawer('chatDrawer'); startChat();">💬 মালিকের সাথে কথা বলুন</button>
     <div class="profile-box">
       <div class="field"><label>নাম</label><input type="text" id="profName"></div>
       <div class="field"><label>ফোন</label><input type="text" id="profPhone" disabled></div>
