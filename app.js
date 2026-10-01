@@ -141,6 +141,8 @@ let pendingProductImages = [], currentProductImageUrls = [];
 let pendingLogoFile = null, currentLogoUrl = "";
 let draftHeroImages = [];
 
+const SEO_BRAND = 'শোভন স্টোর (Shovon Store)';
+const SEO_TITLE = SEO_BRAND + ' | স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য';
 let SITE_SETTINGS = {
     storeName: STORE_CONFIG.storeName || "আমার শপ",
     storeAddress: STORE_CONFIG.storeAddress || "",
@@ -364,8 +366,32 @@ function fillDistrictSelects() {
 }
 fillDistrictSelects();
 
+let settingsLoaded = false;
+// সেটিংস ফর্ম সবসময় সর্বশেষ সেভ করা তথ্য (SITE_SETTINGS) দিয়ে ভরা হয়
+function fillSettingsForm() {
+  document.getElementById('setStoreName').value = SITE_SETTINGS.storeName;
+  document.getElementById('setStoreAddress').value = SITE_SETTINGS.storeAddress || '';
+  document.getElementById('setContactNumber').value = SITE_SETTINGS.contactNumber || '';
+  document.getElementById('setWebsiteUrl').value = SITE_SETTINGS.websiteUrl || '';
+  document.getElementById('setWaNum').value = SITE_SETTINGS.whatsappNumber;
+  document.getElementById('setBkashNumber').value = SITE_SETTINGS.bkashNumber;
+  document.getElementById('setOwnerDistrict').value = SITE_SETTINGS.ownerDistrict;
+  document.getElementById('setDeliveryInside').value = SITE_SETTINGS.deliveryChargeInside;
+  document.getElementById('setDeliveryOutside').value = SITE_SETTINGS.deliveryChargeOutside;
+  document.getElementById('setDeliveryTime').value = SITE_SETTINGS.deliveryTimeText;
+  document.getElementById('setTerms').value = SITE_SETTINGS.termsText;
+  if(SITE_SETTINGS.logoUrl) { document.getElementById('logoPreview').src = SITE_SETTINGS.logoUrl; document.getElementById('logoPreview').style.display = 'block'; currentLogoUrl = SITE_SETTINGS.logoUrl; }
+  draftHeroImages = [...(SITE_SETTINGS.heroImages || [])];
+  renderHeroImagesList();
+  document.getElementById('setBgType').value = SITE_SETTINGS.bgType || 'solid';
+  document.getElementById('setBgColor').value = SITE_SETTINGS.bgColor || '#FFFFFF';
+  document.getElementById('setBgColorField').style.display = (SITE_SETTINGS.bgType||'solid') === 'solid' ? 'block' : 'none';
+}
+
 db.collection('settings').doc('store_info').onSnapshot(doc => {
     if(doc.exists) SITE_SETTINGS = { ...SITE_SETTINGS, ...doc.data() };
+    settingsLoaded = true;
+    if (isAdmin) fillSettingsForm();
     updateSiteInfoUI();
     updateCartUI();
 });
@@ -386,7 +412,7 @@ function updateSeoSiteUrl() {
 function updateSiteInfoUI() {
     updateSeoSiteUrl();
     document.getElementById('siteStoreName').textContent = SITE_SETTINGS.storeName;
-    if (!currentViewProductId) document.title = SITE_SETTINGS.storeName + " | স্টোর";
+    if (!currentViewProductId) document.title = SEO_TITLE;
     const cleanWaNum = SITE_SETTINGS.whatsappNumber.replace(/[^0-9]/g, '');
     document.getElementById('floatWaBtn').href = `https://wa.me/${cleanWaNum}?text=আসসালামু আলাইকুম`;
     document.getElementById('menuWaLink').href = `https://wa.me/${cleanWaNum}?text=আসসালামু আলাইকুম`;
@@ -474,23 +500,7 @@ auth.onAuthStateChanged(async user => {
       document.getElementById('adminDrawerTitle').textContent = "এডমিন ড্যাশবোর্ড";
       document.getElementById('adminLoginFormSection').style.display = 'none';
       document.getElementById('adminMenuSection').style.display = 'block';
-      document.getElementById('setStoreName').value = SITE_SETTINGS.storeName;
-      document.getElementById('setStoreAddress').value = SITE_SETTINGS.storeAddress || '';
-      document.getElementById('setContactNumber').value = SITE_SETTINGS.contactNumber || '';
-      document.getElementById('setWebsiteUrl').value = SITE_SETTINGS.websiteUrl || '';
-      document.getElementById('setWaNum').value = SITE_SETTINGS.whatsappNumber;
-      document.getElementById('setBkashNumber').value = SITE_SETTINGS.bkashNumber;
-      document.getElementById('setOwnerDistrict').value = SITE_SETTINGS.ownerDistrict;
-      document.getElementById('setDeliveryInside').value = SITE_SETTINGS.deliveryChargeInside;
-      document.getElementById('setDeliveryOutside').value = SITE_SETTINGS.deliveryChargeOutside;
-      document.getElementById('setDeliveryTime').value = SITE_SETTINGS.deliveryTimeText;
-      document.getElementById('setTerms').value = SITE_SETTINGS.termsText;
-      if(SITE_SETTINGS.logoUrl) { document.getElementById('logoPreview').src = SITE_SETTINGS.logoUrl; document.getElementById('logoPreview').style.display = 'block'; currentLogoUrl = SITE_SETTINGS.logoUrl; }
-      draftHeroImages = [...(SITE_SETTINGS.heroImages || [])];
-      renderHeroImagesList();
-      document.getElementById('setBgType').value = SITE_SETTINGS.bgType || 'solid';
-      document.getElementById('setBgColor').value = SITE_SETTINGS.bgColor || '#FFFFFF';
-      document.getElementById('setBgColorField').style.display = (SITE_SETTINGS.bgType||'solid') === 'solid' ? 'block' : 'none';
+      fillSettingsForm();
       startAdminNotificationListeners();
       db.collection('chats').onSnapshot(snap => {
         let unread = 0; snap.docs.forEach(d => { if (d.data().unreadByAdmin) unread++; });
@@ -811,7 +821,7 @@ window.openFullview = (id, skipHistory) => {
   document.getElementById('productFullview').scrollTop = 0;
 
   // SEO: টাইটেল/মেটা/JSON-LD প্রোডাক্ট-নির্দিষ্ট করে দেওয়া + শেয়ারযোগ্য URL
-  document.getElementById('pageTitle').textContent = `${p.name} | ${SITE_SETTINGS.storeName}`;
+  document.getElementById('pageTitle').textContent = `${p.name} | ${SEO_BRAND}`;
   document.getElementById('metaDesc').setAttribute('content', (p.description || p.name).slice(0,155));
   document.getElementById('ogTitleTag').setAttribute('content', p.name);
   document.getElementById('ogDescTag').setAttribute('content', (p.description || p.name).slice(0,155));
@@ -830,8 +840,8 @@ function slugify(s) { return encodeURIComponent(String(s||'').trim().replace(/\s
 window.closeFullview = () => {
   document.getElementById('productFullview').classList.remove('open');
   currentViewProductId = null;
-  document.getElementById('pageTitle').textContent = SITE_SETTINGS.storeName + " | স্টোর";
-  document.getElementById('metaDesc').setAttribute('content', "শোভন স্টোর থেকে সেরা মানের স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন — bKash পেমেন্ট, দ্রুত ডেলিভারি, সারাদেশে।");
+  document.getElementById('pageTitle').textContent = SEO_TITLE;
+  document.getElementById('metaDesc').setAttribute('content', "শোভন স্টোর থেকে সেরা মানের নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন — bKash/online পেমেন্ট, দ্রুত ডেলিভারি, সারাদেশে।");
   document.getElementById('productJsonLd').textContent = '';
   document.getElementById('canonicalLink').setAttribute('href', siteUrl() + '/');
   document.getElementById('ogUrlTag').setAttribute('content', siteUrl() + '/');
@@ -1149,6 +1159,7 @@ document.getElementById('setBgType').addEventListener('change', (e) => {
 // সেটিংস সেভ করার লজিক (বিকাশ নম্বর ভ্যালিডেশন সহ)
 document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
   const btn = document.getElementById('saveSettingsBtn');
+  if (!settingsLoaded) { alert('সেটিংস এখনো লোড হয়নি। ইন্টারনেট বা অ্যাড-ব্লকার চেক করে পেজ রিফ্রেশ দিয়ে আবার চেষ্টা করুন।'); return; }
   btn.disabled = true; btn.textContent = "সংরক্ষণ হচ্ছে...";
   try {
     let waNumClean = document.getElementById('setWaNum').value.replace(/[^0-9]/g,'');
@@ -1161,7 +1172,7 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
        return;
     }
 
-    let logoUrlToSave = currentLogoUrl;
+    let logoUrlToSave = currentLogoUrl || SITE_SETTINGS.logoUrl || '';
     if(pendingLogoFile) logoUrlToSave = await uploadToStorage(pendingLogoFile, 'store');
     
     const heroImagesClean = (draftHeroImages.length ? draftHeroImages : (SITE_SETTINGS.heroImages || [])).filter(Boolean);
@@ -1187,7 +1198,7 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
         termsText: document.getElementById('setTerms').value, bkashNumber: bkashClean
     }, {merge: true});
     
-    closeAllDrawers(); showToast("সেটিংস আপডেট করা হয়েছে");
+    pendingLogoFile = null; closeAllDrawers(); showToast("সেটিংস আপডেট করা হয়েছে");
   } catch(e) { alert("সংরক্ষণে ত্রুটি হয়েছে: " + e.message); }
   btn.disabled = false; btn.textContent = "সেটিংস সংরক্ষণ করুন";
 });
