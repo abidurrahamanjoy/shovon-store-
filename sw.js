@@ -1,5 +1,8 @@
-const CACHE_NAME = 'shuvon-store-v6';
+const CACHE_NAME = 'shuvon-store-v7';
 const APP_SHELL = ['/', '/index.html', '/styles.css', '/app.js', '/manifest.json', '/icon-192.png', '/icon-512.png'];
+
+// এই ফাইলগুলো বদলালে ভিজিটর যেন সবসময় নতুন কপি পায় (network-first)
+const NETWORK_FIRST = ['/firebase-config.js', '/app.js', '/styles.css'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -24,13 +27,15 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   // HTML: cache-first for instant repeat visits, then refresh in background.
-  // The new service-worker version invalidates the old shell after deployment.
   if (event.request.mode === 'navigate') {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       const cached = await cache.match('/index.html');
       const network = fetch(event.request).then((response) => {
-        if (response.ok) cache.put('/index.html', response.clone());
+        if (response.ok) {
+          const copy = response.clone();
+          cache.put('/index.html', copy);
+        }
         return response;
       }).catch(() => null);
       return cached || await network || new Response('Offline', { status: 503 });
@@ -38,24 +43,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Firebase configuration should refresh after every deployment, with cache fallback offline.
-  if (url.pathname === '/firebase-config.js') {
+  // কোড ও কনফিগ ফাইল: আগে নেটওয়ার্ক থেকে আনবে, অফলাইনে থাকলে ক্যাশ থেকে দেবে।
+  if (NETWORK_FIRST.includes(url.pathname)) {
     event.respondWith(
       fetch(event.request).then((response) => {
-        if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        }
         return response;
       }).catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // Static same-origin assets: cache-first for speed.
+  // বাকি static ফাইল (ছবি, আইকন): cache-first
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request).then((response) => {
         if (response.ok) {
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
         return response;
       });
