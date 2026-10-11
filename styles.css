@@ -217,34 +217,227 @@
   .suggest-item span { font-size:0.82rem; color:var(--accent-dark); font-weight:700; }
 
 
-
-  /* ===== Desktop overrides (must stay after the base rules) ===== */
+  /* ============================================================
+     DESKTOP / LAPTOP (≥ 900px) — সম্পূর্ণ নতুন balanced লেআউট
+     মোবাইলে কোনো প্রভাব নেই (৯০০px এর নিচে এই ব্লক ignore হয়)
+     ============================================================ */
   @media (min-width: 900px) {
+
     body { padding-bottom: 0; }
-    .wrap { max-width: 1400px; padding: 0 24px; }
-    .wrap-inner { padding: 0; }
-    header { padding: 14px 0; }
-    .brand { font-size: 1.7rem; gap: 14px; }
-    .brand img { height: 48px; max-height: 48px; width: auto; border-radius: 10px; }
-    .icon-btn { width: 46px; height: 46px; border-radius: 13px; }
-    .icon-btn svg { width: 22px; height: 22px; }
-    .header-actions { gap: 14px; }
-    .cart-badge { width: 19px; height: 19px; font-size: 11px; }
-    /* পিসিতে হিরো ব্যানার লম্বা করার কোড */
-    .hero { min-height: clamp(380px, 30vw, 480px); }
-    .hero-content { padding: 40px; }
-    
-    .hero-content h1 { font-size: 2rem; }
-    .hero-content p { font-size: 1rem; }
-    .grid { grid-template-columns: repeat(4, 1fr); gap: 22px; }
-    .bottom-nav { display: none; }
-    .wa-float { bottom: 26px; }
-    .admin-fab { bottom: 90px; }
-  }
 
-  /* Desktop: keep the header full-width instead of squeezing it into the mobile 480px layout. */
-  @media (min-width: 900px) {
-    header > div:first-child { max-width: 1400px !important; width: 100%; }
+    /* ---------- কনটেইনার ---------- */
+    .wrap       { max-width: 1200px; padding: 0 32px; }
+    .wrap-inner { padding: 0; }
+
+    /* ---------- হেডার ---------- */
+    header { padding: 18px 0; }
+    header > div:first-child {
+      max-width: 1200px !important;
+      width: 100%;
+      padding: 0 32px !important;
+    }
+    .brand        { font-size: 1.5rem; gap: 12px; }
+    .brand img    { height: 44px; max-height: 44px; width: auto; border-radius: 12px; }
+    .icon-btn     { width: 44px; height: 44px; border-radius: 12px; }
+    .icon-btn svg { width: 20px; height: 20px; }
+    .header-actions { gap: 12px; }
+    .cart-badge   { width: 19px; height: 19px; font-size: 11px; top: -5px; right: -5px; }
+
+    /* ---------- সার্চ বার ---------- */
+    .search-bar {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+      width: 100%;
+    }
+    .search-bar.open { max-height: 78px; margin-bottom: 22px; }
+    .search-bar input { padding: 16px 22px; font-size: 0.95rem; border-radius: 16px; }
+
+    .search-wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+    .suggest-box { left: 32px; right: 32px; top: 0; border-radius: 16px; }
+    .suggest-item { padding: 12px 18px; }
+    .suggest-item img { width: 44px; height: 44px; }
+    .suggest-item b { font-size: 0.92rem; }
+    .suggest-item span { font-size: 0.88rem; }
+
+    /* ---------- হিরো ব্যানার ---------- */
+    .hero {
+      min-height: 540px;
+      height: 62vh;
+      max-height: 640px;
+      border-radius: 28px;
+      margin-bottom: 48px;
+      box-shadow: 0 24px 60px rgba(30,27,22,0.16);
+    }
+    .hero-content {
+      padding: 72px 76px;
+      background: linear-gradient(90deg,
+                  rgba(20,17,12,0.68) 0%,
+                  rgba(20,17,12,0.28) 55%,
+                  rgba(20,17,12,0.05) 100%);
+    }
+    .hero-content-inner { max-width: 620px; }
+    .hero-content h1 {
+      font-size: clamp(2rem, 3.4vw, 3rem);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+    .hero-content p {
+      font-size: 1.1rem;
+      line-height: 1.55;
+      margin-bottom: 28px;
+      opacity: 0.94;
+    }
+    .hero-btn {
+      padding: 15px 36px;
+      font-size: 1rem;
+      border-radius: 999px;
+      box-shadow: 0 12px 30px rgba(196,112,46,0.5);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .hero-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(196,112,46,0.58);
+    }
+    .hero-dots { bottom: 28px; gap: 8px; }
+    .hero-dots span { width: 8px; height: 8px; }
+    .hero-dots span.active { width: 26px; }
+
+    /* ---------- ক্যাটাগরি রো ---------- */
+    .categories {
+      gap: 32px;
+      justify-content: center;
+      padding: 10px 0 22px;
+      margin-bottom: 42px;
+    }
+    .cat-item { gap: 10px; }
+    .cat-img {
+      width: 92px; height: 92px;
+      box-shadow: 0 8px 22px rgba(30,27,22,0.12);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .cat-item:hover .cat-img {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 30px rgba(30,27,22,0.18);
+    }
+    .cat-item span { font-size: 0.9rem; font-weight: 600; }
+    .cat-edit-btn { width: 26px; height: 26px; bottom: 2px; right: 2px; }
+    .cat-edit-btn svg { width: 13px; height: 13px; }
+    .cat-del-btn { width: 22px; height: 22px; top: 2px; right: 2px; }
+
+    /* ---------- সেকশন হেডিং ---------- */
+    .section-row {
+      margin-bottom: 28px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+      align-items: flex-end;
+    }
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+    .sort-select {
+      padding: 11px 16px;
+      font-size: 0.88rem;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    /* ---------- প্রোডাক্ট গ্রিড ---------- */
+    .grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 28px;
+      margin-bottom: 52px;
+    }
+    .card-img-wrap {
+      border-radius: 18px;
+      margin-bottom: 14px;
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .card:hover .card-img-wrap {
+      transform: translateY(-4px);
+      box-shadow: 0 22px 44px rgba(30,27,22,0.18),
+                  0 6px 14px rgba(214,166,75,0.3);
+    }
+    .card-title { font-size: 0.98rem; margin-bottom: 6px; }
+    .card-price { font-size: 1.1rem; margin-bottom: 14px; }
+    .add-cart-btn {
+      padding: 12px;
+      font-size: 0.88rem;
+      border-radius: 12px;
+      transition: background .2s ease;
+    }
+    .add-cart-btn:hover { background: var(--accent-soft); }
+    .wish-btn { width: 34px; height: 34px; top: 10px; right: 10px; }
+    .wish-btn svg { width: 17px; height: 17px; }
+    .stock-tag { font-size: 0.72rem; padding: 4px 12px; left: 10px; bottom: 10px; }
+    .zoom-hint { width: 30px; height: 30px; bottom: 10px; right: 10px; }
+    .admin-actions { gap: 10px; }
+    .btn-admin { padding: 9px; font-size: 0.78rem; }
+
+    /* ---------- বটম নেভ (ডেস্কটপে নেই) ---------- */
+    .bottom-nav { display: none; }
+
+    /* ---------- ফ্লোটিং বাটন ---------- */
+    .wa-float {
+      bottom: 32px; right: 32px;
+      width: 56px; height: 56px;
+      transition: transform .2s ease;
+    }
+    .wa-float:hover { transform: scale(1.08); }
+    .admin-fab {
+      bottom: 104px; right: 32px;
+      width: 56px; height: 56px;
+      font-size: 28px;
+    }
+
+    /* ---------- ড্রয়ার ---------- */
+    .drawer { max-width: 440px; }
+    .drawer-head { padding: 24px 24px 20px; }
+    .drawer-head h2 { font-size: 1.2rem; }
+    .drawer-body { padding: 24px; }
+    .drawer-foot { padding: 24px; }
+
+    /* ---------- ফুলস্ক্রিন প্রোডাক্ট ভিউ (দুই-কলাম) ---------- */
+    .fullview-inner {
+      max-width: 1080px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100%;
+      padding-bottom: 0;
+      background: var(--paper);
+      border-radius: 24px;
+      margin: 40px auto;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(30,27,22,0.35);
+    }
+    .fullview-img-wrap {
+      aspect-ratio: auto;
+      height: 100%;
+      min-height: 560px;
+    }
+    .fullview-slide img { height: 100%; }
+    .fullview-body {
+      margin-top: 0;
+      border-radius: 0;
+      padding: 48px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .fullview-body h2 { font-size: 1.75rem; margin-bottom: 10px; }
+    .fullview-price { font-size: 1.6rem; margin-bottom: 14px; }
+    .fullview-desc { font-size: 1rem; line-height: 1.9; }
+    .fullview-close { top: 20px; left: 20px; }
+    .fullview-wish  { top: 20px; right: 20px; }
+
+    /* ---------- মডাল ---------- */
+    .glass-card { max-width: 420px; padding: 32px 28px; }
+    .glass-card h2 { font-size: 1.3rem; }
   }
 
 
