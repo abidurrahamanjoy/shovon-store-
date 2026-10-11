@@ -51,7 +51,7 @@
   .hero-dots span { width:6px; height:6px; border-radius:50%; background: rgba(255,255,255,0.5); transition: all .2s; }
   .hero-dots span.active { background:#fff; width:16px; border-radius:4px; }
   .hero-content h1 { font-size: 1.35rem; font-weight: 700; line-height: 1.25; margin-bottom: 8px; color: #fff; }
-  .hero-content p { font-size: 0.85rem; margin-bottom: 16px; opacity: 0.95; }
+  .hero-content p { font-size: 0.85rem; margin-bottom: 6px; opacity: 0.95; }
   .hero-btn { background: var(--accent); color: white; padding: 11px 22px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; display: inline-block; box-shadow: 0 6px 16px rgba(196,112,46,0.45); }
 
   .categories { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 26px; scrollbar-width: none; }
