@@ -323,7 +323,7 @@ async function uploadToStorage(file, folder) {
   }
   if (folder === 'products') {
     if (file.size > 30 * 1024 * 1024) throw new Error('ছবির সাইজ অনেক বেশি (সর্বোচ্চ ৩০ MB)।');
-    file = await resizeImageForUpload(file, 1080);
+    file = await resizeImageForUpload(file, 1600);
   }
   const maxBytes = 5 * 1024 * 1024;
   if (file.size > maxBytes) {
