@@ -297,13 +297,18 @@
     <div class="field"><label>হোয়াটসঅ্যাপ নম্বর</label><input type="tel" id="setWaNum" placeholder="8801XXXXXXXXX"></div>
 
     <hr style="border:none; border-top:1px solid var(--line); margin:18px 0;">
-    <p style="font-weight:700; margin-bottom:12px;">হিরো ব্যানার (একাধিক ছবি, স্লাইডশো)</p>
-    <div id="heroImagesList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;"></div>
-    <label style="display:block; border: 1.5px dashed var(--accent); border-radius: 14px; padding: 14px; text-align: center; margin-bottom: 16px; cursor: pointer; background: var(--sand);">
+    <p style="font-weight:700; margin-bottom:6px;">হিরো ব্যানার (স্লাইডশো)</p>
+    <p style="font-size:0.75rem; color:var(--ink-soft); margin-bottom:12px;">প্রতিটি ছবির সাথে আলাদা হেডলাইন ও ডিটেইল লিখতে পারবেন। খালি রাখলে ঐ স্লাইডে কিছুই দেখা যাবে না।</p>
+
+    <div id="heroSlidesList"></div>
+
+    <label style="display:block; border: 1.5px dashed var(--accent); border-radius: 14px; padding: 14px; text-align: center; margin-bottom: 12px; cursor: pointer; background: var(--sand);">
       <span style="font-size: 0.85rem; color: var(--accent-dark); font-weight:600;">+ নতুন হিরো ছবি যোগ করুন</span>
       <small style="display:block;margin-top:6px;color:var(--ink-soft);font-size:0.72rem;">JPG / PNG / WEBP / GIF · সর্বোচ্চ ৫ MB · Cloudinary</small>
       <input type="file" accept="image/*" id="heroInput" style="display:none;">
     </label>
+
+    <div class="field"><label>বাটন টেক্সট (সব স্লাইডে একই)</label><input type="text" id="setHeroBtnText" placeholder="পণ্য দেখুন"></div>
 
     <hr style="border:none; border-top:1px solid var(--line); margin:18px 0;">
     <p style="font-weight:700; margin-bottom:12px;">ওয়েবসাইটের ব্যাকগ্রাউন্ড</p>
