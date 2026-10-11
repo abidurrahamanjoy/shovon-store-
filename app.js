@@ -6,7 +6,7 @@
    ============================================================ */
 
 /* ---------------- Image optimization ---------------- */
-function optimizedImageUrl(url, width = 800) {
+function optimizedImageUrl(url, width = 800, quality = 'good') {
   const value = String(url || '').trim();
   if (!value) return value;
   try {
@@ -21,7 +21,8 @@ function optimizedImageUrl(url, width = 800) {
     const hasTransform = existing[0] && /^(f_|q_|w_|h_|c_|dpr_|ar_|g_|b_|e_)/.test(existing[0]);
     if (hasTransform) return value;
     const safeWidth = Math.max(80, Math.min(1800, Math.round(Number(width) || 800)));
-    u.pathname = prefix + `f_auto,q_auto:good,dpr_auto,w_${safeWidth}/` + rest;
+    const q = ['best', 'good', 'eco'].includes(quality) ? quality : 'good';
+    u.pathname = prefix + `f_auto,q_auto:${q},dpr_auto,c_limit,w_${safeWidth}/` + rest;
     return u.toString();
   } catch (_) { return value; }
 }
@@ -29,9 +30,9 @@ function optimizedImageUrl(url, width = 800) {
 /* Inline SVG placeholder — no external dependency, no dummy image */
 const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%3E%3Crect%20fill%3D%22%23F7F4EF%22%20width%3D%22200%22%20height%3D%22200%22%2F%3E%3Cpath%20d%3D%22M55%20145%20L90%2095%20L115%20125%20L140%2090%20L160%20145%20Z%22%20fill%3D%22%23D6CFC2%22%2F%3E%3Ccircle%20cx%3D%2272%22%20cy%3D%2262%22%20r%3D%2213%22%20fill%3D%22%23D6CFC2%22%2F%3E%3C%2Fsvg%3E";
 
-function imageAttrs(url, width = 800, eager = false) {
+function imageAttrs(url, width = 800, eager = false, quality = 'good') {
   const raw = String(url || '').trim();
-  const src = raw ? optimizedImageUrl(raw, width) : PLACEHOLDER_IMG;
+  const src = raw ? optimizedImageUrl(raw, width, quality) : PLACEHOLDER_IMG;
   return `src="${escapeHtml(src)}" loading="${eager ? 'eager' : 'lazy'}" decoding="async"${eager ? ' fetchpriority="high"' : ''}`;
 }
 
@@ -280,10 +281,49 @@ async function loadAdminAnalytics() {
 window.loadAdminAnalytics = loadAdminAnalytics;
 
 /* ---------------- Cloudinary upload ---------------- */
+/* প্রোডাক্টের ছবি আপলোডের আগে ব্রাউজারে ছোট করা: লম্বা দিক সর্বোচ্চ maxSide px।
+   ছোট ছবি বড় করা হয় না। WebP (না পারলে JPEG) এ উচ্চ কোয়ালিটিতে সেভ হয়।
+   GIF বা আগে থেকেই ছোট ও হালকা ছবি অপরিবর্তিত থাকে। ব্যর্থ হলে আসল ফাইলই যায়। */
+async function resizeImageForUpload(file, maxSide = 1080) {
+  try {
+    if (!file || file.type === 'image/gif') return file;
+    let bmp;
+    try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+    catch (_) { bmp = await createImageBitmap(file); }
+    const w = bmp.width, h = bmp.height;
+    const scale = Math.min(1, maxSide / Math.max(w, h));
+    if (scale === 1 && file.size <= 1.5 * 1024 * 1024) { bmp.close && bmp.close(); return file; }
+    const cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = cw; canvas.height = ch;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(bmp, 0, 0, cw, ch);
+    bmp.close && bmp.close();
+    const toBlob = (type, q) => new Promise(res => canvas.toBlob(res, type, q));
+    let blob = await toBlob('image/webp', 0.9);
+    let ext = 'webp';
+    if (!blob || blob.type !== 'image/webp') {
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cw, ch);
+      blob = await toBlob('image/jpeg', 0.9);
+      ext = 'jpg';
+    }
+    if (!blob) return file;
+    if (scale === 1 && blob.size >= file.size) return file;
+    const baseName = String(file.name || 'image').replace(/\.[^.]+$/, '');
+    return new File([blob], `${baseName}.${ext}`, { type: blob.type });
+  } catch (_) { return file; }
+}
+
 async function uploadToStorage(file, folder) {
   const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
   if (!file || !allowedTypes.has(file.type)) {
     throw new Error('শুধু JPG, PNG, WEBP বা GIF ছবি আপলোড করা যাবে।');
+  }
+  if (folder === 'products') {
+    if (file.size > 30 * 1024 * 1024) throw new Error('ছবির সাইজ অনেক বেশি (সর্বোচ্চ ৩০ MB)।');
+    file = await resizeImageForUpload(file, 1080);
   }
   const maxBytes = 5 * 1024 * 1024;
   if (file.size > maxBytes) {
@@ -1219,7 +1259,7 @@ function renderProducts() {
 
   if (!list.length) {
     let msg = 'এই মুহূর্তে কোনো পণ্য উপলব্ধ নেই।';
-    if (activeView === 'favorites') msg = 'আপনার প্রিয় তালিকা খালি।';
+    if (activeView === 'favorites') msg = 'আপনার ফেভারিট লিস্ট খালি।';
     else if (searchTerm) msg = 'আপনার সার্চের সাথে মিলে এমন কোনো পণ্য পাওয়া যায়নি।';
     else if (activeCategory !== 'সব') msg = 'এই ক্যাটাগরিতে এখনো কোনো পণ্য যোগ করা হয়নি।';
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">${msg}</div>`;
@@ -1257,7 +1297,7 @@ window.toggleWishlist = (id) => {
     const svg = document.getElementById('fvWishBtn').querySelector('svg');
     if (svg) svg.style.fill = wishlist[id] ? 'var(--danger)' : 'none';
   }
-  showToast(wishlist[id] ? "প্রিয় তালিকায় যোগ হয়েছে" : "প্রিয় তালিকা থেকে সরানো হয়েছে");
+  showToast(wishlist[id] ? "ফেভারিট লিস্টে যোগ হয়েছে" : "ফেভারিট লিস্ট থেকে সরানো হয়েছে");
 };
 window.updateFvDots = () => {
   const s = document.getElementById('fvSlider');
@@ -1299,7 +1339,7 @@ window.openFullview = (id, skipHistory) => {
   const imgList = fvImgs.length ? fvImgs : [PLACEHOLDER_IMG];
   const slider = document.getElementById('fvSlider');
   slider.innerHTML = imgList.map(u =>
-    `<div class="fullview-slide"><img ${imageAttrs(u, 1200)} alt="${escapeHtml(p.name || '')}"></div>`
+    `<div class="fullview-slide"><img ${imageAttrs(u, 1600, false, 'best')} alt="${escapeHtml(p.name || '')}"></div>`
   ).join('');
   slider.scrollLeft = 0;
   document.getElementById('fvDots').innerHTML = imgList.length > 1
@@ -1790,7 +1830,7 @@ if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', async () => {
     return;
   }
   btn.disabled = true;
-  btn.textContent = "সংরক্ষণ হচ্ছে...";
+  btn.textContent = "save হচ্ছে...";
   try {
     let waNumClean = document.getElementById('setWaNum').value.replace(/[^0-9]/g, '');
     if (/^01[3-9][0-9]{8}$/.test(waNumClean)) waNumClean = '88' + waNumClean;
@@ -1799,7 +1839,7 @@ if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', async () => {
     if (bkashClean && !/^01[3-9][0-9]{8}$/.test(bkashClean)) {
       alert("bKash নম্বর সঠিক নয়! (যেমন: 017XXXXXXXX)");
       btn.disabled = false;
-      btn.textContent = "সেটিংস সংরক্ষণ করুন";
+      btn.textContent = "সেটিংস save করুন";
       return;
     }
 
@@ -1845,10 +1885,10 @@ if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', async () => {
     closeAllDrawers();
     showToast("সেটিংস আপডেট করা হয়েছে");
   } catch (e) {
-    alert("সংরক্ষণে ত্রুটি হয়েছে: " + e.message);
+    alert("Save করতে ত্রুটি হয়েছে: " + e.message);
   }
   btn.disabled = false;
-  btn.textContent = "সেটিংস সংরক্ষণ করুন";
+  btn.textContent = "সেটিংস Save করুন";
 });
 
 /* ---------------- Save product ---------------- */
@@ -1865,7 +1905,7 @@ if (saveProductBtn) saveProductBtn.addEventListener('click', async () => {
   };
   if (!data.name || !data.price) return alert("দয়া করে নাম ও দাম পূরণ করুন");
   btn.disabled = true;
-  btn.textContent = "সংরক্ষণ হচ্ছে...";
+  btn.textContent = "সেভ হচ্ছে...";
   try {
     let imageUrls = currentProductImageUrls;
     if (pendingProductImages.length) {
@@ -1880,7 +1920,7 @@ if (saveProductBtn) saveProductBtn.addEventListener('click', async () => {
       await db.collection('products').add(data);
     }
     closeAllDrawers();
-    showToast("সফলভাবে সংরক্ষিত হয়েছে!");
+    showToast("সফলভাবে সেভ হয়েছে!");
   } catch (e) {
     console.error(e);
     alert("সংরক্ষণে সমস্যা হয়েছে: " + e.message);
@@ -1890,11 +1930,11 @@ if (saveProductBtn) saveProductBtn.addEventListener('click', async () => {
 });
 
 window.deleteProduct = async (id) => {
-  if (confirm("আপনি কি নিশ্চিতভাবে এই পণ্যটি মুছে ফেলতে চান?")) {
+  if (confirm("আপনি কি নিশ্চিতভাবে এই পণ্যটি ডিলিট করে ফেলতে চান?")) {
     try {
       await db.collection('products').doc(id).delete();
-      showToast("পণ্য মুছে ফেলা হয়েছে");
-    } catch (e) { alert("মুছে ফেলতে সমস্যা হয়েছে: " + e.message); }
+      showToast("পণ্য ডিলিট করা হয়েছে");
+    } catch (e) { alert("ডিলিট করতে সমস্যা হয়েছে: " + e.message); }
   }
 };
 
