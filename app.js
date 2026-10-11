@@ -1,6 +1,8 @@
 /* ============================================================
-  Developer Joy — app.js
-   Production build — no dummy data, all content from Firestore.
+   Develper Joy — app.js
+   Production build — no dummy data. All content from Firestore.
+   Admin data in settings/store_info is preserved and never overwritten
+   unless admin explicitly saves new values.
    ============================================================ */
 
 /* ---------------- Image optimization ---------------- */
@@ -164,10 +166,11 @@ const BD_DISTRICTS = ["ঢাকা","ফরিদপুর","গাজীপু
 /* ---------------- SEO ---------------- */
 function getStoreBrand() {
   const n = String(SITE_SETTINGS.storeName || '').trim();
-  return n || 'স্টোর';
+  return n || '';
 }
 function getSeoTitle() {
-  return getStoreBrand() + ' — অনলাইন স্টোর';
+  const b = getStoreBrand();
+  return b ? `${b} — অনলাইন স্টোর` : '';
 }
 
 /* ---------------- Service worker ---------------- */
@@ -331,7 +334,12 @@ function openDrawer(id) {
 }
 if (overlay) overlay.addEventListener('click', closeAllDrawers);
 
-/* ---------------- Site settings snapshot ---------------- */
+/* ---------------- Site settings snapshot ----------------
+   IMPORTANT: Firestore is the single source of truth.
+   Admin data in settings/store_info is never deleted by the app.
+   The empty SITE_SETTINGS defaults below are only used as a
+   shape template; real values always come from Firestore.
+--------------------------------------------------------- */
 db.collection('settings').doc('store_info').onSnapshot(docSnap => {
   if (docSnap.exists) {
     SITE_SETTINGS = { ...SITE_SETTINGS, ...docSnap.data() };
@@ -357,12 +365,15 @@ function updateSeoSiteUrl() {
   const canonical = document.getElementById('canonicalLink');
   const ogUrl = document.getElementById('ogUrlTag');
   const ogImage = document.getElementById('ogImageTag');
+  const ogSiteNameById = document.getElementById('ogSiteNameTag');
+
   if (canonical) canonical.href = base + '/';
   if (ogUrl) ogUrl.content = base + '/';
   if (ogImage) ogImage.content = SITE_SETTINGS.logoUrl || (base + '/icon-512.png');
-  const ogSiteName = document.querySelector('meta[property="og:site_name"]');
-  if (ogSiteName && SITE_SETTINGS.storeName) ogSiteName.setAttribute('content', SITE_SETTINGS.storeName);
-  const storeLdScript = document.querySelector('script[type="application/ld+json"]:not(#productJsonLd)');
+  if (ogSiteNameById && SITE_SETTINGS.storeName) ogSiteNameById.setAttribute('content', SITE_SETTINGS.storeName);
+
+  /* Update JSON-LD store schema with real Firestore data */
+  const storeLdScript = document.getElementById('storeJsonLd');
   if (storeLdScript && SITE_SETTINGS.storeName) {
     try {
       const parsed = JSON.parse(storeLdScript.textContent);
@@ -371,8 +382,11 @@ function updateSeoSiteUrl() {
           item.name = SITE_SETTINGS.storeName;
           item.url = base + '/';
         }
-        if (item["@type"] === "OnlineStore" && item.address && SITE_SETTINGS.ownerDistrict) {
-          item.address.addressLocality = SITE_SETTINGS.ownerDistrict;
+        if (item["@type"] === "OnlineStore") {
+          item.description = SITE_SETTINGS.storeAddress || SITE_SETTINGS.storeName;
+          if (item.address && SITE_SETTINGS.ownerDistrict) {
+            item.address.addressLocality = SITE_SETTINGS.ownerDistrict;
+          }
         }
       });
       storeLdScript.textContent = JSON.stringify(parsed);
@@ -380,23 +394,39 @@ function updateSeoSiteUrl() {
   }
 }
 
+/* Hero content:
+   Priority 1: admin-set heroTitle / heroSubtitle / heroBtnText
+   Priority 2: storeName / storeAddress / "পণ্য দেখুন"
+   If both empty → hide that element (no fake text shown) */
 function updateHeroContent() {
   const h1 = document.querySelector('.hero-content h1');
   const p = document.querySelector('.hero-content p');
   const btn = document.querySelector('.hero-btn');
-  if (h1 && String(SITE_SETTINGS.heroTitle || '').trim()) h1.textContent = SITE_SETTINGS.heroTitle;
-  if (p && String(SITE_SETTINGS.heroSubtitle || '').trim()) p.textContent = SITE_SETTINGS.heroSubtitle;
-  if (btn && String(SITE_SETTINGS.heroBtnText || '').trim()) btn.textContent = SITE_SETTINGS.heroBtnText;
+
+  const title = String(SITE_SETTINGS.heroTitle || '').trim()
+              || String(SITE_SETTINGS.storeName || '').trim();
+  const subtitle = String(SITE_SETTINGS.heroSubtitle || '').trim()
+                 || String(SITE_SETTINGS.storeAddress || '').trim();
+  const btnText = String(SITE_SETTINGS.heroBtnText || '').trim() || 'পণ্য দেখুন';
+
+  if (h1) {
+    h1.textContent = title;
+    h1.style.display = title ? '' : 'none';
+  }
+  if (p) {
+    p.textContent = subtitle;
+    p.style.display = subtitle ? '' : 'none';
+  }
+  if (btn) btn.textContent = btnText;
 }
 
 function updateSiteInfoUI() {
   const storeNameEl = document.getElementById('siteStoreName');
   const logoEl = document.getElementById('siteLogoImg');
-  const brand = getStoreBrand();
   if (storeNameEl) storeNameEl.textContent = SITE_SETTINGS.storeName || '';
   if (logoEl) {
     if (SITE_SETTINGS.logoUrl) { logoEl.src = SITE_SETTINGS.logoUrl; logoEl.style.display = 'block'; }
-    else { logoEl.style.display = 'none'; }
+    else { logoEl.style.display = 'none'; logoEl.removeAttribute('src'); }
   }
   if (!currentViewProductId) document.title = SITE_SETTINGS.storeName ? getSeoTitle() : '';
 
@@ -456,10 +486,12 @@ function renderHeroCarousel() {
   if (!optimized.length) {
     slidesEl.innerHTML = '';
     dotsEl.innerHTML = '';
-    if (contentEl) contentEl.style.background = 'rgba(20,17,12,0.35)';
+    box.style.background = SITE_SETTINGS.bgColor || '';
+    if (contentEl) contentEl.style.background = 'rgba(20,17,12,0.05)';
     return;
   }
 
+  box.style.background = '';
   if (contentEl) contentEl.style.background = '';
 
   const preload = document.createElement('link');
@@ -517,6 +549,11 @@ function fillSettingsForm() {
   set('setTerms', SITE_SETTINGS.termsText || '');
   set('setBgType', SITE_SETTINGS.bgType || 'solid');
   set('setBgColor', SITE_SETTINGS.bgColor || '#FFFFFF');
+
+  /* Hero text fields — will render if the inputs exist in the settings drawer */
+  set('setHeroTitle', SITE_SETTINGS.heroTitle || '');
+  set('setHeroSubtitle', SITE_SETTINGS.heroSubtitle || '');
+  set('setHeroBtnText', SITE_SETTINGS.heroBtnText || '');
 
   const bgColorField = document.getElementById('setBgColorField');
   if (bgColorField) bgColorField.style.display = (SITE_SETTINGS.bgType || 'solid') === 'solid' ? 'block' : 'none';
@@ -1546,4 +1583,319 @@ if (checkoutBtn) checkoutBtn.addEventListener('click', async () => {
     let orderNumber;
     await db.runTransaction(async tx => {
       const counterSnap = await tx.get(counterRef);
-      const currentNumber = counterSnap.exists ? Number(counterSnap.data().currentNumber || 1000) : 1000
+      const currentNumber = counterSnap.exists ? Number(counterSnap.data().currentNumber || 1000) : 1000;
+      const nextNumber = currentNumber + 1;
+      if (!Number.isInteger(nextNumber) || nextNumber < 1001 || nextNumber > 999999999) {
+        throw new Error('Order ID counter সীমায় পৌঁছে গেছে।');
+      }
+      const orderRef = db.collection('orders').doc(String(nextNumber));
+      const existingOrder = await tx.get(orderRef);
+      if (existingOrder.exists) throw new Error('Order ID conflict হয়েছে, আবার চেষ্টা করুন।');
+      tx.set(orderRef, orderData);
+      tx.set(counterRef, {
+        currentNumber: nextNumber,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      orderNumber = String(nextNumber);
+    });
+
+    cart = {};
+    localStorage.setItem('shuvon_cart', JSON.stringify(cart));
+    updateCartUI();
+    ['custTrxId', 'custPaidAmount'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.getElementById('orderResultBody').innerHTML =
+      `<div class="order-card"><span class="status-badge pending_payment">পেমেন্ট যাচাই হচ্ছে</span><p style="margin-top:12px;">আপনার অর্ডার আইডি: <b>${orderNumber}</b></p><p style="margin-top:6px; font-size:0.85rem; color:var(--ink-soft);">TrxID ও পেমেন্টের পরিমাণ মালিক যাচাই করার পর অর্ডার নিশ্চিত হবে। "অ্যাকাউন্ট" থেকে স্ট্যাটাস দেখতে পারবেন। ডেলিভারি সময়: ${escapeHtml(SITE_SETTINGS.deliveryTimeText || '')}</p></div>`;
+    openDrawer('orderResultDrawer');
+  } catch (e) {
+    console.error(e);
+    alert("অর্ডার সম্পন্ন করতে সমস্যা হয়েছে: " + e.message);
+  }
+  btn.textContent = "অর্ডার নিশ্চিত করুন";
+  validateCheckoutForm();
+});
+
+function paymentSummary(o) {
+  const total = Number(o.grandTotal || 0);
+  const paid = Number(o.paymentAmountEntered || 0);
+  const due = Math.max(0, total - paid);
+  let label = 'পেমেন্ট যাচাই বাকি';
+  if (o.status === 'cancelled') label = 'অর্ডার বাতিল';
+  else if (o.status === 'payment_mismatch') label = 'পেমেন্টে সমস্যা / তথ্য মিলছে না';
+  else if (paid >= total) label = 'সম্পূর্ণ পরিশোধিত';
+  else if (paid > 0) label = 'আংশিক পরিশোধিত';
+  return { total, paid, due, label };
+}
+
+window.printOrderMemo = async function (orderId, viewer) {
+  try {
+    const snap = await db.collection('orders').doc(orderId).get();
+    if (!snap.exists) return alert('অর্ডারটি পাওয়া যায়নি।');
+    const o = snap.data();
+    if (viewer === 'customer' && (!auth.currentUser || o.customerUid !== auth.currentUser.uid)) return alert('এই অর্ডারটি দেখার অনুমতি নেই।');
+    if (viewer === 'admin' && !isAdmin) return alert('শুধু মালিক মেমো প্রিন্ট করতে পারবেন।');
+    const ss = o.storeSnapshot || SITE_SETTINGS;
+    const cur = ss.currency || '৳';
+    const pay = paymentSummary(o);
+    const date = o.createdAt && o.createdAt.toDate ? o.createdAt.toDate().toLocaleString('bn-BD') : new Date().toLocaleString('bn-BD');
+    const logo = ss.logoUrl ? `<img class="logo" src="${safeAttrUrl(ss.logoUrl)}">` : '';
+    const rows = (o.items || []).map(it =>
+      `<tr><td>${escapeHtml(it.name)}</td><td>${Number(it.qty || 0)}</td><td>${cur}${Number(it.price || 0).toLocaleString('en-US')}</td><td>${cur}${(Number(it.price || 0) * Number(it.qty || 0)).toLocaleString('en-US')}</td></tr>`
+    ).join('');
+    const w = window.open('', '_blank', 'width=900,height=900');
+    if (!w) return alert('Print window খুলতে browser popup permission দিন।');
+    w.document.write(`<!doctype html><html lang="bn"><head><meta charset="utf-8"><title>Order Memo</title><style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f3f3f3;margin:0;padding:25px;color:#222}.memo{max-width:820px;margin:auto;background:#fff;padding:32px;border-radius:16px}.head{display:flex;gap:16px;align-items:center;border-bottom:2px solid #222;padding-bottom:16px}.logo{width:70px;height:70px;object-fit:contain;border-radius:10px}.store h1{margin:0 0 5px}.store p{margin:3px 0;font-size:13px;color:#555}.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;padding:16px 0;font-size:13px}table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid #ddd;text-align:left;font-size:13px}th{background:#f6f6f6}.totals{margin:15px 0 0 auto;width:320px}.row{display:flex;justify-content:space-between;padding:6px 0}.grand{border-top:2px solid #222;font-size:17px;font-weight:800;padding-top:9px}.payment{margin-top:18px;border:1px solid #ddd;border-radius:10px;padding:14px}.due{color:#c62828;font-weight:800}.paid{color:#2e7d32;font-weight:800}.foot{margin-top:22px;text-align:center;border-top:1px solid #ddd;padding-top:12px;font-size:12px;color:#666}.actions{text-align:center;margin:18px}.actions button{padding:10px 18px;border:0;border-radius:8px}@media print{body{background:#fff;padding:0}.memo{max-width:none;border-radius:0}.actions{display:none}}</style></head><body><div class="memo"><div class="head">${logo}<div class="store"><h1>${escapeHtml(ss.storeName || '')}</h1><p>${escapeHtml(ss.storeAddress || '')}</p><p>কন্টাক্ট: ${escapeHtml(ss.contactNumber || ss.whatsappNumber || '')}</p><p>${escapeHtml(ss.websiteUrl || siteUrl())}</p></div></div><div class="meta"><div><b>অর্ডার:</b> ${escapeHtml(orderId)}</div><div><b>তারিখ:</b> ${escapeHtml(date)}</div><div><b>কাস্টমার:</b> ${escapeHtml(o.customerName || '')}</div><div><b>ফোন:</b> ${escapeHtml(o.customerPhone || '')}</div><div><b>জেলা:</b> ${escapeHtml(o.customerDistrict || '')}</div><div><b>উপজেলা:</b> ${escapeHtml(o.customerUpazila || '')}</div><div style="grid-column:1/-1"><b>ঠিকানা:</b> ${escapeHtml(o.customerAddress || '')}</div></div><table><thead><tr><th>পণ্য</th><th>পরিমাণ</th><th>দাম</th><th>মোট</th></tr></thead><tbody>${rows}</tbody></table><div class="totals"><div class="row"><span>পণ্যের মোট</span><b>${cur}${Number(o.itemsTotal || 0).toLocaleString('en-US')}</b></div><div class="row"><span>ডেলিভারি</span><b>${cur}${Number(o.deliveryCharge || 0).toLocaleString('en-US')}</b></div><div class="row grand"><span>সর্বমোট</span><b>${cur}${pay.total.toLocaleString('en-US')}</b></div></div><div class="payment"><b>পেমেন্ট তথ্য</b><div class="row"><span>পদ্ধতি</span><b>${escapeHtml(o.paymentMethod || '-')}</b></div><div class="row"><span>স্ট্যাটাস</span><b>${escapeHtml(pay.label)}</b></div><div class="row"><span>Transaction ID</span><b>${escapeHtml(o.paymentTrxId || '-')}</b></div><div class="row"><span>পরিশোধিত</span><b class="paid">${cur}${pay.paid.toLocaleString('en-US')}</b></div><div class="row"><span>বাকি</span><b class="due">${cur}${pay.due.toLocaleString('en-US')}</b></div></div><div class="foot">অর্ডার স্ট্যাটাস: ${escapeHtml(orderStatusLabel(o.status))}<br>ধন্যবাদ।</div></div><div class="actions"><button onclick="window.print()">🖨 Print Memo</button></div><script>window.addEventListener('load',function(){setTimeout(function(){window.print()},150)})<\/script></body></html>`);
+    w.document.close();
+    w.onload = () => setTimeout(() => w.print(), 300);
+  } catch (e) { alert('মেমো খুলতে সমস্যা হয়েছে: ' + e.message); }
+};
+
+/* ---------------- Admin: orders ---------------- */
+window.openOrdersAdmin = async () => {
+  openDrawer('ordersAdminDrawer');
+  const body = document.getElementById('ordersAdminBody');
+  body.innerHTML = '<p style="color:var(--ink-soft);">লোড হচ্ছে...</p>';
+  try {
+    const snap = await db.collection('orders').orderBy('createdAt', 'desc').limit(50).get();
+    if (snap.empty) { body.innerHTML = '<p style="color:var(--ink-soft);">কোনো অর্ডার নেই।</p>'; return; }
+    body.innerHTML = snap.docs.map(d => {
+      const o = d.data();
+      return `<div class="order-card">
+        <span class="status-badge ${escapeHtml(o.status)}">${escapeHtml(orderStatusLabel(o.status))}</span>
+        <p style="margin-top:8px; font-weight:600;">${escapeHtml(o.customerName || '')} — ${escapeHtml(o.customerPhone || '')}</p>
+        <p style="font-size:0.85rem; color:var(--ink-soft);">${escapeHtml(o.customerAddress || '')}, ${escapeHtml(o.customerUpazila || '')}, ${escapeHtml(o.customerDistrict || '')}</p>
+        <p style="font-size:0.85rem; margin-top:4px;">মোট: ৳${Number(o.grandTotal || 0)} | TrxID: ${escapeHtml(o.paymentTrxId || '')} | পাঠিয়েছে: ৳${Number(o.paymentAmountEntered || 0)}</p>
+        <button class="btn-block btn-outline" style="margin-top:10px;" onclick="printOrderMemo('${escapeHtml(d.id)}','admin')">🖨 মালিকের মেমো প্রিন্ট</button>
+        <div class="field" style="margin-top:10px;"><label>ট্র্যাকিং লিংক</label><input type="url" value="${escapeHtml(o.trackingUrl || '')}" id="track_${escapeHtml(d.id)}" placeholder="https://..."></div>
+        <div class="field"><label>স্ট্যাটাস</label>
+          <select id="status_${escapeHtml(d.id)}">
+            <option value="pending_payment" ${o.status === 'pending_payment' ? 'selected' : ''}>পেমেন্ট যাচাই বাকি</option>
+            <option value="confirmed" ${o.status === 'confirmed' ? 'selected' : ''}>পেমেন্ট নিশ্চিত / অর্ডার কনফার্ম</option>
+            <option value="payment_mismatch" ${o.status === 'payment_mismatch' ? 'selected' : ''}>পেমেন্ট মিসম্যাচ</option>
+            <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>প্রসেসিং</option>
+            <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>পাঠানো হয়েছে</option>
+            <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>ডেলিভারড</option>
+            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>বাতিল</option>
+          </select>
+        </div>
+        <button class="btn-admin" style="width:100%;" onclick="saveOrderAdmin('${escapeHtml(d.id)}')">সংরক্ষণ করুন</button>
+      </div>`;
+    }).join('');
+  } catch (e) { body.innerHTML = '<p style="color:var(--danger);">লোড করতে সমস্যা হয়েছে।</p>'; }
+};
+window.saveOrderAdmin = async (id) => {
+  const trackingUrl = document.getElementById(`track_${id}`).value.trim();
+  const status = document.getElementById(`status_${id}`).value;
+  if (trackingUrl && !safeHttpUrl(trackingUrl)) { alert('ট্র্যাকিং লিংক অবশ্যই https:// দিয়ে শুরু হতে হবে।'); return; }
+  try {
+    await db.collection('orders').doc(id).update({
+      trackingUrl, status,
+      statusUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast("অর্ডার আপডেট হয়েছে");
+  } catch (e) { alert("আপডেট ব্যর্থ: " + e.message); }
+};
+
+/* ---------------- Admin: product form ---------------- */
+const adminFabBtn = document.getElementById('adminFabBtn');
+if (adminFabBtn) adminFabBtn.addEventListener('click', () => openProductForm(null));
+
+function renderImgPreviewContainer(urls) {
+  const c = document.getElementById('imgPreviewContainer');
+  if (c) c.innerHTML = urls.map(u => `<img ${imageAttrs(u, 180)} style="height:64px; width:64px; object-fit:cover; border-radius:8px; flex-shrink:0;" alt="">`).join('');
+}
+const imgInput = document.getElementById('imgInput');
+if (imgInput) imgInput.addEventListener('change', (e) => {
+  pendingProductImages = Array.from(e.target.files);
+  if (!pendingProductImages.length) return;
+  const previews = new Array(pendingProductImages.length);
+  let loaded = 0;
+  pendingProductImages.forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      previews[i] = ev.target.result;
+      loaded++;
+      if (loaded === pendingProductImages.length) renderImgPreviewContainer(previews);
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+window.openProductForm = (id) => {
+  editingId = id;
+  pendingProductImages = [];
+  const p = id ? PRODUCTS.find(x => x.id === id) : null;
+  document.getElementById('formTitle').textContent = p ? 'পণ্য এডিট করুন' : 'পণ্য যোগ করুন';
+  document.getElementById('pName').value = p ? (p.name || '') : '';
+  document.getElementById('pCategory').value = p ? (p.category || '') : '';
+  document.getElementById('pPrice').value = p ? (p.price || '') : '';
+  document.getElementById('pDesc').value = p ? (p.description || '') : '';
+  document.getElementById('pStock').value = p ? (p.stock || 'স্টকে আছে') : 'স্টকে আছে';
+  currentProductImageUrls = p ? (p.images && p.images.length ? p.images : (p.image ? [p.image] : [])) : [];
+  renderImgPreviewContainer(currentProductImageUrls);
+  openDrawer('formDrawer');
+};
+
+const logoInput = document.getElementById('logoInput');
+if (logoInput) logoInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  pendingLogoFile = file;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('logoPreview').src = ev.target.result;
+    document.getElementById('logoPreview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
+function renderHeroImagesList() {
+  const c = document.getElementById('heroImagesList');
+  if (!c) return;
+  c.innerHTML = draftHeroImages.map((url, i) => `
+    <div style="position:relative; width:70px; height:70px;">
+      <img ${imageAttrs(url, 600)} style="width:100%; height:100%; object-fit:cover; border-radius:10px;" alt="">
+      <button onclick="removeDraftHeroImage(${i})" style="position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; background:var(--danger); color:#fff; font-size:11px;">×</button>
+    </div>`).join('');
+}
+window.removeDraftHeroImage = (i) => { draftHeroImages.splice(i, 1); renderHeroImagesList(); };
+
+const heroInput = document.getElementById('heroInput');
+if (heroInput) heroInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  showToast('ছবি আপলোড হচ্ছে...');
+  try {
+    const url = await uploadToStorage(file, 'hero');
+    draftHeroImages.push(url);
+    renderHeroImagesList();
+    showToast('যোগ হয়েছে — সেভ করতে ভুলবেন না');
+  } catch (err) {
+    alert('আপলোড ব্যর্থ: ' + err.message);
+  }
+  e.target.value = '';
+});
+
+const setBgType = document.getElementById('setBgType');
+if (setBgType) setBgType.addEventListener('change', (e) => {
+  const bgColorField = document.getElementById('setBgColorField');
+  if (bgColorField) bgColorField.style.display = e.target.value === 'solid' ? 'block' : 'none';
+});
+
+/* ---------------- Save settings (preserves all admin data) ---------------- */
+const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', async () => {
+  const btn = saveSettingsBtn;
+  if (!settingsLoaded) {
+    alert('সেটিংস এখনো লোড হয়নি। ইন্টারনেট বা অ্যাড-ব্লকার চেক করে পেজ রিফ্রেশ দিয়ে আবার চেষ্টা করুন।');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = "সংরক্ষণ হচ্ছে...";
+  try {
+    let waNumClean = document.getElementById('setWaNum').value.replace(/[^0-9]/g, '');
+    if (/^01[3-9][0-9]{8}$/.test(waNumClean)) waNumClean = '88' + waNumClean;
+
+    const bkashClean = document.getElementById('setBkashNumber').value.replace(/[^0-9]/g, '');
+    if (bkashClean && !/^01[3-9][0-9]{8}$/.test(bkashClean)) {
+      alert("bKash নম্বর সঠিক নয়! (যেমন: 017XXXXXXXX)");
+      btn.disabled = false;
+      btn.textContent = "সেটিংস সংরক্ষণ করুন";
+      return;
+    }
+
+    let logoUrlToSave = currentLogoUrl || SITE_SETTINGS.logoUrl || '';
+    if (pendingLogoFile) logoUrlToSave = await uploadToStorage(pendingLogoFile, 'store');
+
+    const heroImagesClean = (draftHeroImages.length ? draftHeroImages : (SITE_SETTINGS.heroImages || [])).filter(Boolean);
+
+    const contactClean = document.getElementById('setContactNumber').value.trim();
+    const websiteClean = safeHttpUrl(document.getElementById('setWebsiteUrl').value.trim(), SITE_SETTINGS.websiteUrl || siteUrl());
+
+    /* Optional hero text fields (rendered only if present in settings drawer) */
+    const heroTitleEl = document.getElementById('setHeroTitle');
+    const heroSubtitleEl = document.getElementById('setHeroSubtitle');
+    const heroBtnTextEl = document.getElementById('setHeroBtnText');
+
+    const payload = {
+      storeName: document.getElementById('setStoreName').value.trim(),
+      storeAddress: document.getElementById('setStoreAddress').value.trim(),
+      contactNumber: contactClean,
+      websiteUrl: websiteClean,
+      whatsappNumber: waNumClean,
+      currency: SITE_SETTINGS.currency || STORE_CONFIG.currency || '৳',
+      logoUrl: logoUrlToSave,
+      heroImages: heroImagesClean,
+      bgType: document.getElementById('setBgType').value,
+      bgColor: document.getElementById('setBgColor').value,
+      ownerDistrict: document.getElementById('setOwnerDistrict').value,
+      deliveryChargeInside: Number(document.getElementById('setDeliveryInside').value) || 0,
+      deliveryChargeOutside: Number(document.getElementById('setDeliveryOutside').value) || 0,
+      deliveryTimeText: document.getElementById('setDeliveryTime').value,
+      termsText: document.getElementById('setTerms').value,
+      bkashNumber: bkashClean
+    };
+
+    if (heroTitleEl) payload.heroTitle = heroTitleEl.value.trim();
+    if (heroSubtitleEl) payload.heroSubtitle = heroSubtitleEl.value.trim();
+    if (heroBtnTextEl) payload.heroBtnText = heroBtnTextEl.value.trim();
+
+    await db.collection('settings').doc('store_info').set(payload, { merge: true });
+
+    pendingLogoFile = null;
+    closeAllDrawers();
+    showToast("সেটিংস আপডেট করা হয়েছে");
+  } catch (e) {
+    alert("সংরক্ষণে ত্রুটি হয়েছে: " + e.message);
+  }
+  btn.disabled = false;
+  btn.textContent = "সেটিংস সংরক্ষণ করুন";
+});
+
+/* ---------------- Save product ---------------- */
+const saveProductBtn = document.getElementById('saveProductBtn');
+if (saveProductBtn) saveProductBtn.addEventListener('click', async () => {
+  const btn = saveProductBtn;
+  const data = {
+    name: document.getElementById('pName').value.trim(),
+    category: document.getElementById('pCategory').value.trim() || 'অন্যান্য',
+    price: Number(document.getElementById('pPrice').value),
+    stock: document.getElementById('pStock').value,
+    description: document.getElementById('pDesc').value || '',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if (!data.name || !data.price) return alert("দয়া করে নাম ও দাম পূরণ করুন");
+  btn.disabled = true;
+  btn.textContent = "সংরক্ষণ হচ্ছে...";
+  try {
+    let imageUrls = currentProductImageUrls;
+    if (pendingProductImages.length) {
+      imageUrls = [];
+      for (const file of pendingProductImages) imageUrls.push(await uploadToStorage(file, 'products'));
+    }
+    data.images = imageUrls.slice(0, 6);
+    data.image = imageUrls[0] || '';
+    if (editingId) await db.collection('products').doc(editingId).set(data, { merge: true });
+    else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('products').add(data);
+    }
+    closeAllDrawers();
+    showToast("সফলভাবে সংরক্ষিত হয়েছে!");
+  } catch (e) {
+    console.error(e);
+    alert("সংরক্ষণে সমস্যা হয়েছে: " + e.message);
+  }
+  btn.disabled = false;
+  btn.textContent = "পণ্য সংরক্ষণ করুন";
+});
+
+window.deleteProduct = async (id) => {
+  if (confirm("আপনি কি নিশ্চিতভাবে এই পণ্যটি মুছে ফেলতে চান?")) {
+    try {
+      await db.collection('products').doc(id).delete();
+      showToast("পণ্য মুছে ফেলা হয়েছে");
+    } catch (e) { alert("মুছে ফেলতে সমস্যা হয়েছে: " + e.message); }
+  }
+};
+
+updateCartUI();
