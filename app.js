@@ -1,8 +1,16 @@
 /* ============================================================
-   Develper Joy — app.js
+   Developer Joy — app.js
    Production build — no dummy data. All content from Firestore.
    Admin data in settings/store_info is preserved and never overwritten
    unless admin explicitly saves new values.
+
+   Hero banner model:
+     settings/store_info.heroSlides = [
+       { image: "https://...", title: "…", subtitle: "…" },
+       …
+     ]
+     settings/store_info.heroBtnText = "পণ্য দেখুন"   // সব স্লাইডে একই
+   Legacy `heroImages` (array of strings) auto-migrates to heroSlides.
    ============================================================ */
 
 /* ---------------- Image optimization ---------------- */
@@ -115,10 +123,8 @@ let SITE_SETTINGS = {
   whatsappNumber: '',
   currency: '৳',
   logoUrl: '',
-  heroImages: [],
-  heroTitle: '',
-  heroSubtitle: '',
-  heroBtnText: '',
+  heroSlides: [],       // [{ image, title, subtitle }]
+  heroBtnText: '',      // সব স্লাইডে একই বাটন টেক্সট
   bgType: 'solid',
   bgColor: '#FFFFFF',
   ownerDistrict: '',
@@ -157,7 +163,7 @@ let pendingProductImages = [];
 let currentProductImageUrls = [];
 let pendingLogoFile = null;
 let currentLogoUrl = "";
-let draftHeroImages = [];
+let draftHeroSlides = [];   // [{ image, title, subtitle }]
 let heroSlideIndex = 0;
 let heroTimer = null;
 let knownOrderStatuses = {};
@@ -281,9 +287,6 @@ async function loadAdminAnalytics() {
 window.loadAdminAnalytics = loadAdminAnalytics;
 
 /* ---------------- Cloudinary upload ---------------- */
-/* প্রোডাক্টের ছবি আপলোডের আগে ব্রাউজারে ছোট করা: লম্বা দিক সর্বোচ্চ maxSide px।
-   ছোট ছবি বড় করা হয় না। WebP (না পারলে JPEG) এ উচ্চ কোয়ালিটিতে সেভ হয়।
-   GIF বা আগে থেকেই ছোট ও হালকা ছবি অপরিবর্তিত থাকে। ব্যর্থ হলে আসল ফাইলই যায়। */
 async function resizeImageForUpload(file, maxSide = 1080) {
   try {
     if (!file || file.type === 'image/gif') return file;
@@ -375,14 +378,35 @@ function openDrawer(id) {
 if (overlay) overlay.addEventListener('click', closeAllDrawers);
 
 /* ---------------- Site settings snapshot ----------------
-   IMPORTANT: Firestore is the single source of truth.
-   Admin data in settings/store_info is never deleted by the app.
-   The empty SITE_SETTINGS defaults below are only used as a
-   shape template; real values always come from Firestore.
+   Firestore is the single source of truth. Admin data in
+   settings/store_info is never deleted by the app. Legacy
+   heroImages arrays are migrated to heroSlides in memory.
 --------------------------------------------------------- */
 db.collection('settings').doc('store_info').onSnapshot(docSnap => {
   if (docSnap.exists) {
-    SITE_SETTINGS = { ...SITE_SETTINGS, ...docSnap.data() };
+    const data = docSnap.data();
+    SITE_SETTINGS = { ...SITE_SETTINGS, ...data };
+
+    /* Migrate legacy heroImages -> heroSlides if heroSlides is empty */
+    if ((!Array.isArray(SITE_SETTINGS.heroSlides) || !SITE_SETTINGS.heroSlides.length)
+        && Array.isArray(data.heroImages) && data.heroImages.length) {
+      SITE_SETTINGS.heroSlides = data.heroImages
+        .filter(Boolean)
+        .map(u => ({ image: String(u), title: '', subtitle: '' }));
+    }
+
+    /* Normalize heroSlides structure (defensive) */
+    if (Array.isArray(SITE_SETTINGS.heroSlides)) {
+      SITE_SETTINGS.heroSlides = SITE_SETTINGS.heroSlides
+        .filter(s => s && s.image)
+        .map(s => ({
+          image: String(s.image || ''),
+          title: String(s.title || ''),
+          subtitle: String(s.subtitle || '')
+        }));
+    } else {
+      SITE_SETTINGS.heroSlides = [];
+    }
   }
   settingsLoaded = true;
   if (isAdmin) fillSettingsForm();
@@ -412,7 +436,6 @@ function updateSeoSiteUrl() {
   if (ogImage) ogImage.content = SITE_SETTINGS.logoUrl || (base + '/icon-512.png');
   if (ogSiteNameById && SITE_SETTINGS.storeName) ogSiteNameById.setAttribute('content', SITE_SETTINGS.storeName);
 
-  /* Update JSON-LD store schema with real Firestore data */
   const storeLdScript = document.getElementById('storeJsonLd');
   if (storeLdScript && SITE_SETTINGS.storeName) {
     try {
@@ -434,30 +457,23 @@ function updateSeoSiteUrl() {
   }
 }
 
-/* Hero content:
-   Priority 1: admin-set heroTitle / heroSubtitle / heroBtnText
-   Priority 2: storeName / storeAddress / "পণ্য দেখুন"
-   If both empty → hide that element (no fake text shown) */
-function updateHeroContent() {
+/* ---------------- Hero text & carousel ----------------
+   Each slide carries its own title + subtitle.
+   Empty title/subtitle → the element is hidden.
+   The button text is global (SITE_SETTINGS.heroBtnText).
+--------------------------------------------------------- */
+function setHeroText(title, subtitle) {
   const h1 = document.querySelector('.hero-content h1');
   const p = document.querySelector('.hero-content p');
   const btn = document.querySelector('.hero-btn');
 
-  const title = String(SITE_SETTINGS.heroTitle || '').trim()
-              || String(SITE_SETTINGS.storeName || '').trim();
-  const subtitle = String(SITE_SETTINGS.heroSubtitle || '').trim()
-                 || String(SITE_SETTINGS.storeAddress || '').trim();
-  const btnText = String(SITE_SETTINGS.heroBtnText || '').trim() || 'পণ্য দেখুন';
+  const t = String(title || '').trim();
+  const s = String(subtitle || '').trim();
+  const b = String(SITE_SETTINGS.heroBtnText || '').trim() || 'পণ্য দেখুন';
 
-  if (h1) {
-    h1.textContent = title;
-    h1.style.display = title ? '' : 'none';
-  }
-  if (p) {
-    p.textContent = subtitle;
-    p.style.display = subtitle ? '' : 'none';
-  }
-  if (btn) btn.textContent = btnText;
+  if (h1) { h1.textContent = t; h1.style.display = t ? '' : 'none'; }
+  if (p)  { p.textContent = s; p.style.display = s ? '' : 'none'; }
+  if (btn) btn.textContent = b;
 }
 
 function updateSiteInfoUI() {
@@ -480,7 +496,6 @@ function updateSiteInfoUI() {
   renderHeroCarousel();
   applyBackground();
   updateSeoSiteUrl();
-  updateHeroContent();
 
   const termsBody = document.getElementById('termsBody');
   if (termsBody) termsBody.textContent = SITE_SETTINGS.termsText || '';
@@ -514,51 +529,68 @@ function renderHeroCarousel() {
   const contentEl = document.querySelector('.hero-content');
   if (!box || !slidesEl || !dotsEl) return;
 
-  const rawImages = (SITE_SETTINGS.heroImages || []).filter(Boolean);
-  const safeImages = rawImages.map(u => safeHttpUrl(u)).filter(Boolean);
-  const optimized = safeImages.map(u => optimizedImageUrl(u, 1400));
+  const rawSlides = Array.isArray(SITE_SETTINGS.heroSlides) ? SITE_SETTINGS.heroSlides : [];
+  const slides = rawSlides
+    .filter(s => s && s.image)
+    .map(s => ({
+      image: safeHttpUrl(s.image),
+      title: String(s.title || '').trim(),
+      subtitle: String(s.subtitle || '').trim()
+    }))
+    .filter(s => s.image);
 
   const oldPreload = document.getElementById('heroImagePreload');
   if (oldPreload) oldPreload.remove();
 
   if (heroTimer) { clearInterval(heroTimer); heroTimer = null; }
 
-  if (!optimized.length) {
+  /* No slides → solid background, hide title/subtitle */
+  if (!slides.length) {
     slidesEl.innerHTML = '';
     dotsEl.innerHTML = '';
     box.style.background = SITE_SETTINGS.bgColor || '';
     if (contentEl) contentEl.style.background = 'rgba(20,17,12,0.05)';
+    setHeroText('', '');
     return;
   }
 
   box.style.background = '';
   if (contentEl) contentEl.style.background = '';
 
+  const optimized = slides.map(s => ({
+    ...s,
+    image: optimizedImageUrl(s.image, 1400)
+  }));
+
   const preload = document.createElement('link');
   preload.id = 'heroImagePreload';
   preload.rel = 'preload';
   preload.as = 'image';
-  preload.href = optimized[0];
+  preload.href = optimized[0].image;
   document.head.appendChild(preload);
 
-  slidesEl.innerHTML = optimized.map((url, i) =>
-    `<div class="hero-slide ${i === 0 ? 'active' : ''}" style="background-image:url('${escapeHtml(url)}')"></div>`
+  slidesEl.innerHTML = optimized.map((s, i) =>
+    `<div class="hero-slide ${i === 0 ? 'active' : ''}" style="background-image:url('${escapeHtml(s.image)}')"></div>`
   ).join('');
   dotsEl.innerHTML = optimized.length > 1
     ? optimized.map((_, i) => `<span class="${i === 0 ? 'active' : ''}"></span>`).join('')
     : '';
 
   heroSlideIndex = 0;
+  setHeroText(optimized[0].title, optimized[0].subtitle);
+
   if (optimized.length > 1) {
     heroTimer = setInterval(() => {
-      const slides = document.querySelectorAll('.hero-slide');
-      const dots = document.querySelectorAll('.hero-dots span');
-      if (!slides.length) return;
-      slides[heroSlideIndex].classList.remove('active');
-      dots[heroSlideIndex] && dots[heroSlideIndex].classList.remove('active');
-      heroSlideIndex = (heroSlideIndex + 1) % slides.length;
-      slides[heroSlideIndex].classList.add('active');
-      dots[heroSlideIndex] && dots[heroSlideIndex].classList.add('active');
+      const slideEls = document.querySelectorAll('.hero-slide');
+      const dotEls = document.querySelectorAll('.hero-dots span');
+      if (!slideEls.length) return;
+      slideEls[heroSlideIndex].classList.remove('active');
+      dotEls[heroSlideIndex] && dotEls[heroSlideIndex].classList.remove('active');
+      heroSlideIndex = (heroSlideIndex + 1) % slideEls.length;
+      slideEls[heroSlideIndex].classList.add('active');
+      dotEls[heroSlideIndex] && dotEls[heroSlideIndex].classList.add('active');
+      const next = optimized[heroSlideIndex];
+      setHeroText(next.title, next.subtitle);
     }, 4000);
   }
 }
@@ -589,10 +621,6 @@ function fillSettingsForm() {
   set('setTerms', SITE_SETTINGS.termsText || '');
   set('setBgType', SITE_SETTINGS.bgType || 'solid');
   set('setBgColor', SITE_SETTINGS.bgColor || '#FFFFFF');
-
-  /* Hero text fields — will render if the inputs exist in the settings drawer */
-  set('setHeroTitle', SITE_SETTINGS.heroTitle || '');
-  set('setHeroSubtitle', SITE_SETTINGS.heroSubtitle || '');
   set('setHeroBtnText', SITE_SETTINGS.heroBtnText || '');
 
   const bgColorField = document.getElementById('setBgColorField');
@@ -605,8 +633,12 @@ function fillSettingsForm() {
   }
   currentLogoUrl = SITE_SETTINGS.logoUrl || '';
 
-  draftHeroImages = [...(SITE_SETTINGS.heroImages || [])];
-  renderHeroImagesList();
+  draftHeroSlides = (SITE_SETTINGS.heroSlides || []).map(s => ({
+    image: s.image || '',
+    title: s.title || '',
+    subtitle: s.subtitle || ''
+  }));
+  renderHeroSlidesList();
 }
 
 /* ---------------- Navigation / menu ---------------- */
@@ -1349,7 +1381,6 @@ window.openFullview = (id, skipHistory) => {
   document.getElementById('productFullview').classList.add('open');
   document.getElementById('productFullview').scrollTop = 0;
 
-  /* SEO meta updates */
   const brand = getStoreBrand();
   document.getElementById('pageTitle').textContent = `${p.name} | ${brand}`;
   const desc = (p.description || p.name || '').slice(0, 155);
@@ -1788,16 +1819,57 @@ if (logoInput) logoInput.addEventListener('change', (e) => {
   reader.readAsDataURL(file);
 });
 
-function renderHeroImagesList() {
-  const c = document.getElementById('heroImagesList');
+/* ---------------- Hero slides list (admin UI) ----------------
+   প্রতিটি স্লাইডের জন্য: ছবি preview + হেডলাইন input + ডিটেইল textarea + remove
+--------------------------------------------------------- */
+function renderHeroSlidesList() {
+  const c = document.getElementById('heroSlidesList');
   if (!c) return;
-  c.innerHTML = draftHeroImages.map((url, i) => `
-    <div style="position:relative; width:70px; height:70px;">
-      <img ${imageAttrs(url, 600)} style="width:100%; height:100%; object-fit:cover; border-radius:10px;" alt="">
-      <button onclick="removeDraftHeroImage(${i})" style="position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; background:var(--danger); color:#fff; font-size:11px;">×</button>
-    </div>`).join('');
+
+  if (!draftHeroSlides.length) {
+    c.innerHTML = '<p style="color:var(--ink-soft); font-size:0.82rem; margin-bottom:10px;">এখনো কোনো হিরো ছবি নেই। নিচের বাটন থেকে ছবি যোগ করুন।</p>';
+    return;
+  }
+
+  c.innerHTML = draftHeroSlides.map((s, i) => {
+    const imgSrc = safeHttpUrl(s.image) || PLACEHOLDER_IMG;
+    return `
+    <div style="border:1px solid var(--line); border-radius:12px; padding:10px; margin-bottom:12px; background:var(--paper);">
+      <div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:10px;">
+        <img src="${escapeHtml(imgSrc)}" alt="" style="width:64px; height:64px; object-fit:cover; border-radius:8px; flex-shrink:0; background:var(--sand);">
+        <div style="flex:1; min-width:0;">
+          <small style="display:block; color:var(--ink-soft); font-size:0.72rem; margin-bottom:4px;">স্লাইড ${i + 1}</small>
+          <input type="text" class="hero-slide-title" data-index="${i}" placeholder="হেডলাইন (ঐচ্ছিক)" value="${escapeHtml(s.title || '')}" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--sand); font-size:0.85rem; margin-bottom:6px; box-sizing:border-box;">
+          <textarea class="hero-slide-subtitle" data-index="${i}" rows="2" placeholder="ডিটেইল / সাবটাইটেল (ঐচ্ছিক)" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--sand); font-size:0.82rem; resize:vertical; box-sizing:border-box;">${escapeHtml(s.subtitle || '')}</textarea>
+        </div>
+        <button type="button" class="hero-slide-remove" data-index="${i}" aria-label="মুছুন" style="width:26px; height:26px; border-radius:50%; background:var(--danger-soft); color:var(--danger); font-size:16px; flex-shrink:0; font-weight:700; line-height:1;">×</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  c.querySelectorAll('.hero-slide-title').forEach(inp => {
+    inp.addEventListener('input', (e) => {
+      const idx = Number(e.target.dataset.index);
+      if (draftHeroSlides[idx]) draftHeroSlides[idx].title = e.target.value;
+    });
+  });
+
+  c.querySelectorAll('.hero-slide-subtitle').forEach(inp => {
+    inp.addEventListener('input', (e) => {
+      const idx = Number(e.target.dataset.index);
+      if (draftHeroSlides[idx]) draftHeroSlides[idx].subtitle = e.target.value;
+    });
+  });
+
+  c.querySelectorAll('.hero-slide-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const idx = Number(e.target.dataset.index);
+      draftHeroSlides.splice(idx, 1);
+      renderHeroSlidesList();
+    });
+  });
 }
-window.removeDraftHeroImage = (i) => { draftHeroImages.splice(i, 1); renderHeroImagesList(); };
 
 const heroInput = document.getElementById('heroInput');
 if (heroInput) heroInput.addEventListener('change', async (e) => {
@@ -1806,9 +1878,9 @@ if (heroInput) heroInput.addEventListener('change', async (e) => {
   showToast('ছবি আপলোড হচ্ছে...');
   try {
     const url = await uploadToStorage(file, 'hero');
-    draftHeroImages.push(url);
-    renderHeroImagesList();
-    showToast('যোগ হয়েছে — সেভ করতে ভুলবেন না');
+    draftHeroSlides.push({ image: url, title: '', subtitle: '' });
+    renderHeroSlidesList();
+    showToast('যোগ হয়েছে — হেডলাইন ও ডিটেইল লিখে সেভ করুন');
   } catch (err) {
     alert('আপলোড ব্যর্থ: ' + err.message);
   }
@@ -1826,116 +1898,4 @@ const saveSettingsBtn = document.getElementById('saveSettingsBtn');
 if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', async () => {
   const btn = saveSettingsBtn;
   if (!settingsLoaded) {
-    alert('সেটিংস এখনো লোড হয়নি। ইন্টারনেট বা অ্যাড-ব্লকার চেক করে পেজ রিফ্রেশ দিয়ে আবার চেষ্টা করুন।');
-    return;
-  }
-  btn.disabled = true;
-  btn.textContent = "save হচ্ছে...";
-  try {
-    let waNumClean = document.getElementById('setWaNum').value.replace(/[^0-9]/g, '');
-    if (/^01[3-9][0-9]{8}$/.test(waNumClean)) waNumClean = '88' + waNumClean;
-
-    const bkashClean = document.getElementById('setBkashNumber').value.replace(/[^0-9]/g, '');
-    if (bkashClean && !/^01[3-9][0-9]{8}$/.test(bkashClean)) {
-      alert("bKash নম্বর সঠিক নয়! (যেমন: 017XXXXXXXX)");
-      btn.disabled = false;
-      btn.textContent = "সেটিংস save করুন";
-      return;
-    }
-
-    let logoUrlToSave = currentLogoUrl || SITE_SETTINGS.logoUrl || '';
-    if (pendingLogoFile) logoUrlToSave = await uploadToStorage(pendingLogoFile, 'store');
-
-    const heroImagesClean = (draftHeroImages.length ? draftHeroImages : (SITE_SETTINGS.heroImages || [])).filter(Boolean);
-
-    const contactClean = document.getElementById('setContactNumber').value.trim();
-    const websiteClean = safeHttpUrl(document.getElementById('setWebsiteUrl').value.trim(), SITE_SETTINGS.websiteUrl || siteUrl());
-
-    /* Optional hero text fields (rendered only if present in settings drawer) */
-    const heroTitleEl = document.getElementById('setHeroTitle');
-    const heroSubtitleEl = document.getElementById('setHeroSubtitle');
-    const heroBtnTextEl = document.getElementById('setHeroBtnText');
-
-    const payload = {
-      storeName: document.getElementById('setStoreName').value.trim(),
-      storeAddress: document.getElementById('setStoreAddress').value.trim(),
-      contactNumber: contactClean,
-      websiteUrl: websiteClean,
-      whatsappNumber: waNumClean,
-      currency: SITE_SETTINGS.currency || STORE_CONFIG.currency || '৳',
-      logoUrl: logoUrlToSave,
-      heroImages: heroImagesClean,
-      bgType: document.getElementById('setBgType').value,
-      bgColor: document.getElementById('setBgColor').value,
-      ownerDistrict: document.getElementById('setOwnerDistrict').value,
-      deliveryChargeInside: Number(document.getElementById('setDeliveryInside').value) || 0,
-      deliveryChargeOutside: Number(document.getElementById('setDeliveryOutside').value) || 0,
-      deliveryTimeText: document.getElementById('setDeliveryTime').value,
-      termsText: document.getElementById('setTerms').value,
-      bkashNumber: bkashClean
-    };
-
-    if (heroTitleEl) payload.heroTitle = heroTitleEl.value.trim();
-    if (heroSubtitleEl) payload.heroSubtitle = heroSubtitleEl.value.trim();
-    if (heroBtnTextEl) payload.heroBtnText = heroBtnTextEl.value.trim();
-
-    await db.collection('settings').doc('store_info').set(payload, { merge: true });
-
-    pendingLogoFile = null;
-    closeAllDrawers();
-    showToast("সেটিংস আপডেট করা হয়েছে");
-  } catch (e) {
-    alert("Save করতে ত্রুটি হয়েছে: " + e.message);
-  }
-  btn.disabled = false;
-  btn.textContent = "সেটিংস Save করুন";
-});
-
-/* ---------------- Save product ---------------- */
-const saveProductBtn = document.getElementById('saveProductBtn');
-if (saveProductBtn) saveProductBtn.addEventListener('click', async () => {
-  const btn = saveProductBtn;
-  const data = {
-    name: document.getElementById('pName').value.trim(),
-    category: document.getElementById('pCategory').value.trim() || 'অন্যান্য',
-    price: Number(document.getElementById('pPrice').value),
-    stock: document.getElementById('pStock').value,
-    description: document.getElementById('pDesc').value || '',
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-  if (!data.name || !data.price) return alert("দয়া করে নাম ও দাম পূরণ করুন");
-  btn.disabled = true;
-  btn.textContent = "সেভ হচ্ছে...";
-  try {
-    let imageUrls = currentProductImageUrls;
-    if (pendingProductImages.length) {
-      imageUrls = [];
-      for (const file of pendingProductImages) imageUrls.push(await uploadToStorage(file, 'products'));
-    }
-    data.images = imageUrls.slice(0, 6);
-    data.image = imageUrls[0] || '';
-    if (editingId) await db.collection('products').doc(editingId).set(data, { merge: true });
-    else {
-      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('products').add(data);
-    }
-    closeAllDrawers();
-    showToast("সফলভাবে সেভ হয়েছে!");
-  } catch (e) {
-    console.error(e);
-    alert("সংরক্ষণে সমস্যা হয়েছে: " + e.message);
-  }
-  btn.disabled = false;
-  btn.textContent = "পণ্য সংরক্ষণ করুন";
-});
-
-window.deleteProduct = async (id) => {
-  if (confirm("আপনি কি নিশ্চিতভাবে এই পণ্যটি ডিলিট করে ফেলতে চান?")) {
-    try {
-      await db.collection('products').doc(id).delete();
-      showToast("পণ্য ডিলিট করা হয়েছে");
-    } catch (e) { alert("ডিলিট করতে সমস্যা হয়েছে: " + e.message); }
-  }
-};
-
-updateCartUI();
+    alert('সেটিংস এখনো লোড হয়নি। ইন্ট
