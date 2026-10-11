@@ -1,16 +1,8 @@
 /* ============================================================
    Developer Joy — app.js
    Production build — no dummy data. All content from Firestore.
-   Admin data in settings/store_info is preserved and never overwritten
-   unless admin explicitly saves new values.
-
-   Hero banner model:
-     settings/store_info.heroSlides = [
-       { image: "https://...", title: "…", subtitle: "…" },
-       …
-     ]
-     settings/store_info.heroBtnText = "পণ্য দেখুন"   // সব স্লাইডে একই
-   Legacy `heroImages` (array of strings) auto-migrates to heroSlides.
+   Hero model: settings/store_info.heroSlides = [{image,title,subtitle}]
+               settings/store_info.heroBtnText = "পণ্য দেখুন"
    ============================================================ */
 
 /* ---------------- Image optimization ---------------- */
@@ -35,7 +27,6 @@ function optimizedImageUrl(url, width = 800, quality = 'good') {
   } catch (_) { return value; }
 }
 
-/* Inline SVG placeholder — no external dependency, no dummy image */
 const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%3E%3Crect%20fill%3D%22%23F7F4EF%22%20width%3D%22200%22%20height%3D%22200%22%2F%3E%3Cpath%20d%3D%22M55%20145%20L90%2095%20L115%20125%20L140%2090%20L160%20145%20Z%22%20fill%3D%22%23D6CFC2%22%2F%3E%3Ccircle%20cx%3D%2272%22%20cy%3D%2262%22%20r%3D%2213%22%20fill%3D%22%23D6CFC2%22%2F%3E%3C%2Fsvg%3E";
 
 function imageAttrs(url, width = 800, eager = false, quality = 'good') {
@@ -123,8 +114,8 @@ let SITE_SETTINGS = {
   whatsappNumber: '',
   currency: '৳',
   logoUrl: '',
-  heroSlides: [],       // [{ image, title, subtitle }]
-  heroBtnText: '',      // সব স্লাইডে একই বাটন টেক্সট
+  heroSlides: [],
+  heroBtnText: '',
   bgType: 'solid',
   bgColor: '#FFFFFF',
   ownerDistrict: '',
@@ -163,7 +154,7 @@ let pendingProductImages = [];
 let currentProductImageUrls = [];
 let pendingLogoFile = null;
 let currentLogoUrl = "";
-let draftHeroSlides = [];   // [{ image, title, subtitle }]
+let draftHeroSlides = [];
 let heroSlideIndex = 0;
 let heroTimer = null;
 let knownOrderStatuses = {};
@@ -377,17 +368,12 @@ function openDrawer(id) {
 }
 if (overlay) overlay.addEventListener('click', closeAllDrawers);
 
-/* ---------------- Site settings snapshot ----------------
-   Firestore is the single source of truth. Admin data in
-   settings/store_info is never deleted by the app. Legacy
-   heroImages arrays are migrated to heroSlides in memory.
---------------------------------------------------------- */
+/* ---------------- Site settings snapshot ---------------- */
 db.collection('settings').doc('store_info').onSnapshot(docSnap => {
   if (docSnap.exists) {
     const data = docSnap.data();
     SITE_SETTINGS = { ...SITE_SETTINGS, ...data };
 
-    /* Migrate legacy heroImages -> heroSlides if heroSlides is empty */
     if ((!Array.isArray(SITE_SETTINGS.heroSlides) || !SITE_SETTINGS.heroSlides.length)
         && Array.isArray(data.heroImages) && data.heroImages.length) {
       SITE_SETTINGS.heroSlides = data.heroImages
@@ -395,7 +381,6 @@ db.collection('settings').doc('store_info').onSnapshot(docSnap => {
         .map(u => ({ image: String(u), title: '', subtitle: '' }));
     }
 
-    /* Normalize heroSlides structure (defensive) */
     if (Array.isArray(SITE_SETTINGS.heroSlides)) {
       SITE_SETTINGS.heroSlides = SITE_SETTINGS.heroSlides
         .filter(s => s && s.image)
@@ -457,11 +442,7 @@ function updateSeoSiteUrl() {
   }
 }
 
-/* ---------------- Hero text & carousel ----------------
-   Each slide carries its own title + subtitle.
-   Empty title/subtitle → the element is hidden.
-   The button text is global (SITE_SETTINGS.heroBtnText).
---------------------------------------------------------- */
+/* ---------------- Hero text & carousel ---------------- */
 function setHeroText(title, subtitle) {
   const h1 = document.querySelector('.hero-content h1');
   const p = document.querySelector('.hero-content p');
@@ -544,7 +525,6 @@ function renderHeroCarousel() {
 
   if (heroTimer) { clearInterval(heroTimer); heroTimer = null; }
 
-  /* No slides → solid background, hide title/subtitle */
   if (!slides.length) {
     slidesEl.innerHTML = '';
     dotsEl.innerHTML = '';
@@ -1819,9 +1799,7 @@ if (logoInput) logoInput.addEventListener('change', (e) => {
   reader.readAsDataURL(file);
 });
 
-/* ---------------- Hero slides list (admin UI) ----------------
-   প্রতিটি স্লাইডের জন্য: ছবি preview + হেডলাইন input + ডিটেইল textarea + remove
---------------------------------------------------------- */
+/* ---------------- Hero slides list (admin UI) ---------------- */
 function renderHeroSlidesList() {
   const c = document.getElementById('heroSlidesList');
   if (!c) return;
@@ -1893,9 +1871,123 @@ if (setBgType) setBgType.addEventListener('change', (e) => {
   if (bgColorField) bgColorField.style.display = e.target.value === 'solid' ? 'block' : 'none';
 });
 
-/* ---------------- Save settings (preserves all admin data) ---------------- */
+/* ---------------- Save settings ---------------- */
 const saveSettingsBtn = document.getElementById('saveSettingsBtn');
 if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', async () => {
   const btn = saveSettingsBtn;
   if (!settingsLoaded) {
-    alert('সেটিংস এখনো লোড হয়নি। ইন্ট
+    alert('সেটিংস এখনো লোড হয়নি। ইন্টারনেট বা অ্যাড-ব্লকার চেক করে পেজ রিফ্রেশ দিয়ে আবার চেষ্টা করুন।');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = "save হচ্ছে...";
+  try {
+    let waNumClean = document.getElementById('setWaNum').value.replace(/[^0-9]/g, '');
+    if (/^01[3-9][0-9]{8}$/.test(waNumClean)) waNumClean = '88' + waNumClean;
+
+    const bkashClean = document.getElementById('setBkashNumber').value.replace(/[^0-9]/g, '');
+    if (bkashClean && !/^01[3-9][0-9]{8}$/.test(bkashClean)) {
+      alert("bKash নম্বর সঠিক নয়! (যেমন: 017XXXXXXXX)");
+      btn.disabled = false;
+      btn.textContent = "সেটিংস save করুন";
+      return;
+    }
+
+    let logoUrlToSave = currentLogoUrl || SITE_SETTINGS.logoUrl || '';
+    if (pendingLogoFile) logoUrlToSave = await uploadToStorage(pendingLogoFile, 'store');
+
+    const heroSlidesClean = (draftHeroSlides || [])
+      .filter(s => s && s.image)
+      .map(s => ({
+        image: String(s.image || ''),
+        title: String(s.title || '').trim(),
+        subtitle: String(s.subtitle || '').trim()
+      }))
+      .slice(0, 8);
+
+    const contactClean = document.getElementById('setContactNumber').value.trim();
+    const websiteClean = safeHttpUrl(document.getElementById('setWebsiteUrl').value.trim(), SITE_SETTINGS.websiteUrl || siteUrl());
+
+    const heroBtnTextEl = document.getElementById('setHeroBtnText');
+
+    const payload = {
+      storeName: document.getElementById('setStoreName').value.trim(),
+      storeAddress: document.getElementById('setStoreAddress').value.trim(),
+      contactNumber: contactClean,
+      websiteUrl: websiteClean,
+      whatsappNumber: waNumClean,
+      currency: SITE_SETTINGS.currency || STORE_CONFIG.currency || '৳',
+      logoUrl: logoUrlToSave,
+      heroSlides: heroSlidesClean,
+      bgType: document.getElementById('setBgType').value,
+      bgColor: document.getElementById('setBgColor').value,
+      ownerDistrict: document.getElementById('setOwnerDistrict').value,
+      deliveryChargeInside: Number(document.getElementById('setDeliveryInside').value) || 0,
+      deliveryChargeOutside: Number(document.getElementById('setDeliveryOutside').value) || 0,
+      deliveryTimeText: document.getElementById('setDeliveryTime').value,
+      termsText: document.getElementById('setTerms').value,
+      bkashNumber: bkashClean
+    };
+
+    if (heroBtnTextEl) payload.heroBtnText = heroBtnTextEl.value.trim();
+
+    await db.collection('settings').doc('store_info').set(payload, { merge: true });
+
+    pendingLogoFile = null;
+    closeAllDrawers();
+    showToast("সেটিংস আপডেট করা হয়েছে");
+  } catch (e) {
+    alert("Save করতে ত্রুটি হয়েছে: " + e.message);
+  }
+  btn.disabled = false;
+  btn.textContent = "সেটিংস Save করুন";
+});
+
+/* ---------------- Save product ---------------- */
+const saveProductBtn = document.getElementById('saveProductBtn');
+if (saveProductBtn) saveProductBtn.addEventListener('click', async () => {
+  const btn = saveProductBtn;
+  const data = {
+    name: document.getElementById('pName').value.trim(),
+    category: document.getElementById('pCategory').value.trim() || 'অন্যান্য',
+    price: Number(document.getElementById('pPrice').value),
+    stock: document.getElementById('pStock').value,
+    description: document.getElementById('pDesc').value || '',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if (!data.name || !data.price) return alert("দয়া করে নাম ও দাম পূরণ করুন");
+  btn.disabled = true;
+  btn.textContent = "সেভ হচ্ছে...";
+  try {
+    let imageUrls = currentProductImageUrls;
+    if (pendingProductImages.length) {
+      imageUrls = [];
+      for (const file of pendingProductImages) imageUrls.push(await uploadToStorage(file, 'products'));
+    }
+    data.images = imageUrls.slice(0, 6);
+    data.image = imageUrls[0] || '';
+    if (editingId) await db.collection('products').doc(editingId).set(data, { merge: true });
+    else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('products').add(data);
+    }
+    closeAllDrawers();
+    showToast("সফলভাবে সেভ হয়েছে!");
+  } catch (e) {
+    console.error(e);
+    alert("সংরক্ষণে সমস্যা হয়েছে: " + e.message);
+  }
+  btn.disabled = false;
+  btn.textContent = "পণ্য সংরক্ষণ করুন";
+});
+
+window.deleteProduct = async (id) => {
+  if (confirm("আপনি কি নিশ্চিতভাবে এই পণ্যটি ডিলিট করে ফেলতে চান?")) {
+    try {
+      await db.collection('products').doc(id).delete();
+      showToast("পণ্য ডিলিট করা হয়েছে");
+    } catch (e) { alert("ডিলিট করতে সমস্যা হয়েছে: " + e.message); }
+  }
+};
+
+updateCartUI();
