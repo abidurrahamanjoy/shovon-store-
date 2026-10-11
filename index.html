@@ -2,53 +2,47 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<script>
-/* পুরনো GitHub Pages ঠিকানা থেকে নতুন ঠিকানায় পাঠানো */
-if (location.hostname.endsWith('github.io')) {
-  location.replace('https://shovon-store.web.app' + location.pathname.replace(/^\/shovon-store-/, '') + location.search + location.hash);
-}
-</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title id="pageTitle">শোভন স্টোর (Shovon Store) | স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য</title>
+<title id="pageTitle"></title>
 
-<meta id="metaDesc" name="description" content="শোভন স্টোর (Shovon Store) — হবিগঞ্জের অনলাইন শপ। সেরা মানের নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন, bKash পেমেন্ট, সারাদেশে ডেলিভারি।">
+<meta id="metaDesc" name="description" content="">
 <meta name="robots" content="index, follow">
-<link id="canonicalLink" rel="canonical" href="https://shovon-store.web.app/">
+<link id="canonicalLink" rel="canonical" href="">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="color-scheme" content="light">
-<meta id="ogTitle" property="og:type" content="website">
-<meta property="og:site_name" content="শোভন স্টোর (Shovon Store)">
+
+<meta id="ogTypeTag" property="og:type" content="website">
+<meta id="ogSiteNameTag" property="og:site_name" content="">
 <meta property="og:locale" content="bn_BD">
-<meta id="ogUrlTag" property="og:url" content="https://shovon-store.web.app/">
-<meta id="ogTitleTag" property="og:title" content="শোভন স্টোর (Shovon Store) | স্টেশনারী ও নিত্যপ্রয়োজনীয় পণ্য">
-<meta id="ogDescTag" property="og:description" content="সেরা মানের নিত্যপ্রয়োজনীয় পণ্য, সারাদেশে ডেলিভারি।">
-<meta id="ogImageTag" property="og:image" content="https://shovon-store.web.app/icon-512.png">
+<meta id="ogUrlTag" property="og:url" content="">
+<meta id="ogTitleTag" property="og:title" content="">
+<meta id="ogDescTag" property="og:description" content="">
+<meta id="ogImageTag" property="og:image" content="">
+
 <meta name="theme-color" content="#C4702E">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
+
 <script id="productJsonLd" type="application/ld+json"></script>
-<script type="application/ld+json">
+<script id="storeJsonLd" type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@graph": [
     {
       "@type": "WebSite",
-      "@id": "https://shovon-store.web.app/#website",
-      "url": "https://shovon-store.web.app/",
-      "name": "শোভন স্টোর",
-      "alternateName": ["Shovon Store", "শোভন স্টোর (Shovon Store)"],
+      "@id": "#website",
+      "url": "",
+      "name": "",
       "inLanguage": "bn"
     },
     {
       "@type": "OnlineStore",
-      "@id": "https://shovon-store.web.app/#store",
-      "name": "শোভন স্টোর",
-      "alternateName": ["Shovon Store"],
-      "url": "https://shovon-store.web.app/",
-      "image": "https://shovon-store.web.app/icon-512.png",
-      "description": "শোভন স্টোর (Shovon Store) থেকে সেরা মানের নিত্যপ্রয়োজনীয় পণ্য অর্ডার করুন — দ্রুত ডেলিভারি, সারাদেশে।",
-      "address": { "@type": "PostalAddress", "addressLocality": "হবিগঞ্জ", "addressCountry": "BD" },
+      "@id": "#store",
+      "name": "",
+      "url": "",
+      "description": "",
+      "address": { "@type": "PostalAddress", "addressCountry": "BD" },
       "areaServed": "BD"
     }
   ]
@@ -71,15 +65,15 @@ if (location.hostname.endsWith('github.io')) {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
     </button>
     <div class="brand">
-      <img id="siteLogoImg" src="" style="display:none;" alt="Logo">
-      <span id="siteStoreName">শোভন স্টোর</span>
+      <img id="siteLogoImg" src="" style="display:none;" alt="">
+      <span id="siteStoreName"></span>
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="searchOpenBtn" aria-label="খুঁজুন">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
       <div class="cart-wrapper" id="cartOpenBtn">
-        <button class="icon-btn">
+        <button class="icon-btn" aria-label="কার্ট">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         </button>
         <span class="cart-badge" id="cartBadge">0</span>
@@ -96,8 +90,8 @@ if (location.hostname.endsWith('github.io')) {
     <div class="hero-slides" id="heroSlides"></div>
     <div class="hero-content">
       <div class="hero-content-inner">
-        <h1>আপনার সব প্রয়োজন এখন এক ঠিকানায়</h1>
-        <p>দারুণ সব অফার আর সেরা পণ্য কিনুন এখনি।</p>
+        <h1></h1>
+        <p></p>
         <a href="#products" class="hero-btn">পণ্য দেখুন</a>
       </div>
     </div>
@@ -107,7 +101,7 @@ if (location.hostname.endsWith('github.io')) {
   <div class="categories" id="categoryRow"></div>
 
   <div class="section-row">
-    <h2 class="section-title" id="products">ট্রেন্ডিং পণ্যসমূহ</h2>
+    <h2 class="section-title" id="products">পণ্যসমূহ</h2>
     <select class="sort-select" id="sortSelect">
       <option value="new">নতুন আগে</option>
       <option value="low">দাম: কম থেকে বেশি</option>
@@ -118,15 +112,15 @@ if (location.hostname.endsWith('github.io')) {
 </div>
 
 <nav class="bottom-nav glass">
-  <a href="#" class="nav-item active" id="navHomeBtn"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
-  <a href="#" class="nav-item" id="navFavBtn"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>favorite</span></a>
-  <a href="#" class="nav-item" id="navInboxBtn"><span class="nav-unread-dot" id="inboxBadge"></span><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Inbox</span></a>
+  <a href="#" class="nav-item active" id="navHomeBtn"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>হোম</span></a>
+  <a href="#" class="nav-item" id="navFavBtn"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>প্রিয়</span></a>
+  <a href="#" class="nav-item" id="navInboxBtn"><span class="nav-unread-dot" id="inboxBadge"></span><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>ইনবক্স</span></a>
 </nav>
 
-<a href="#" id="floatWaBtn" class="wa-float" target="_blank" aria-label="WhatsApp Chat">
+<a href="#" id="floatWaBtn" class="wa-float" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp Chat">
   <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.6.1-.2.3-.7.9-.9 1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.5-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.2-.4.1-.2 0-.3 0-.5-.1-.1-.6-1.5-.8-2-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9.6.3 1.1.4 1.5.6.6.2 1.2.2 1.6.1.5-.1 1.7-.7 1.9-1.3.2-.6.2-1.1.2-1.3-.1-.1-.3-.2-.6-.3z"/><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.6 1.4 5.1L2 22l5-1.4c1.4.8 3.1 1.2 5 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18.2c-1.6 0-3.2-.4-4.5-1.3l-.3-.2-3 .8.8-2.9-.2-.3C4 15 3.5 13.5 3.5 12c0-4.7 3.8-8.5 8.5-8.5s8.5 3.8 8.5 8.5-3.8 8.5-8.5 8.5z"/></svg>
 </a>
-<button id="adminFabBtn" class="admin-fab" title="Add Product">+</button>
+<button id="adminFabBtn" class="admin-fab" title="Add Product" aria-label="Add Product">+</button>
 <div id="toast" class="toast">Message</div>
 <div class="overlay" id="overlay"></div>
 
@@ -134,12 +128,12 @@ if (location.hostname.endsWith('github.io')) {
 <div class="drawer left" id="menuDrawer">
   <div class="drawer-head"><h2>মেনু</h2><button class="drawer-close" onclick="closeAllDrawers()">&times;</button></div>
   <div class="drawer-body">
-    <a href="#" class="menu-link" onclick="closeAllDrawers(); window.scrollTo(0,0); return false;"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Home</a>
+    <a href="#" class="menu-link" onclick="closeAllDrawers(); window.scrollTo(0,0); return false;"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> হোম</a>
     <a href="#" class="menu-link" onclick="closeAllDrawers(); goHomeView(); document.getElementById('products').scrollIntoView(); return false;"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> সকল পণ্য</a>
     <a href="#" class="menu-link" onclick="closeAllDrawers(); showFavorites(); return false;"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> প্রিয় তালিকা</a>
     <a href="#" class="menu-link" onclick="closeAllDrawers(); openDrawer('termsDrawer'); return false;"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> শর্তাবলী</a>
     <a href="#" class="menu-link" id="menuAccountLink"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> অ্যাকাউন্ট</a>
-    <a href="#" class="menu-link" id="menuWaLink" target="_blank" style="border-bottom:none;"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> যোগাযোগ করুন</a>
+    <a href="#" class="menu-link" id="menuWaLink" target="_blank" rel="noopener noreferrer" style="border-bottom:none;"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> যোগাযোগ করুন</a>
   </div>
 </div>
 
@@ -147,10 +141,10 @@ if (location.hostname.endsWith('github.io')) {
 <div class="fullview" id="productFullview">
   <div class="fullview-inner">
     <div class="fullview-img-wrap">
-      <button class="fullview-close glass" onclick="closeFullview()">
+      <button class="fullview-close glass" onclick="closeFullview()" aria-label="বন্ধ">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
-      <button class="fullview-wish glass" id="fvWishBtn" onclick="toggleWishlistFromView()">
+      <button class="fullview-wish glass" id="fvWishBtn" onclick="toggleWishlistFromView()" aria-label="প্রিয়">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       </button>
       <div class="fullview-slider" id="fvSlider" onscroll="updateFvDots()"></div>
@@ -185,8 +179,9 @@ if (location.hostname.endsWith('github.io')) {
     <div class="field"><textarea id="custAddress" placeholder="ডেলিভারি ঠিকানা" rows="2"></textarea></div>
 
     <div class="pay-box">
-      দয়া করে কোন ধরণের পেমেন্ট করবেন না এই মুহুর্তে <b id="payBkashNumber">-</b> নম্বরে bKash <b>Send Money</b> করে,
-      ঠিক <b id="payAmountHint">৳ ০</b> টাকা পাঠা্নোর প্রয়োজন নেই । ডেলিভারি সময়: <span id="payDeliveryTime">-</span>
+      bKash <b>Send Money</b> করুন এই নম্বরে: <b id="payBkashNumber">—</b>।
+      সঠিক পরিমাণ: <b id="payAmountHint">৳ ০</b>।
+      ডেলিভারি সময়: <span id="payDeliveryTime">—</span>
     </div>
     <div class="field"><input type="text" id="custTrxId" placeholder="bKash TrxID"></div>
     <div class="field"><input type="number" id="custPaidAmount" placeholder="আপনি কত টাকা পাঠিয়েছেন"></div>
@@ -236,13 +231,13 @@ if (location.hostname.endsWith('github.io')) {
   <div class="drawer-body chat-thread" id="chatMessages"></div>
   <div class="chat-input-row">
     <input type="text" id="chatInput" placeholder="বার্তা লিখুন...">
-    <button id="chatSendBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    <button id="chatSendBtn" aria-label="পাঠান"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
   </div>
 </div>
 
-<!-- ADMIN INBOX (all chats) -->
+<!-- ADMIN INBOX -->
 <div class="drawer" id="adminInboxDrawer">
-  <div class="drawer-head"><h2>Inbox</h2><button class="drawer-close" onclick="closeAllDrawers()">&times;</button></div>
+  <div class="drawer-head"><h2>ইনবক্স</h2><button class="drawer-close" onclick="closeAllDrawers()">&times;</button></div>
   <div class="drawer-body" id="adminInboxList"></div>
 </div>
 <div class="drawer" id="adminChatDrawer">
@@ -250,7 +245,7 @@ if (location.hostname.endsWith('github.io')) {
   <div class="drawer-body chat-thread" id="adminChatMessages"></div>
   <div class="chat-input-row">
     <input type="text" id="adminChatInput" placeholder="উত্তর লিখুন...">
-    <button id="adminChatSendBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    <button id="adminChatSendBtn" aria-label="পাঠান"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
   </div>
 </div>
 
@@ -268,7 +263,7 @@ if (location.hostname.endsWith('github.io')) {
     <div class="notif-toggle"><span>🔔 অর্ডার নোটিফিকেশন</span><button class="btn-admin" id="enableAdminNotifBtn" style="flex:none; padding:8px 14px;">চালু করুন</button></div>
     <button class="btn-block" onclick="openProductForm(null)">নতুন পণ্য যোগ করুন</button>
     <button class="btn-block btn-outline" onclick="openOrdersAdmin()">অর্ডার সমূহ</button>
-    <button class="btn-block btn-outline" onclick="closeAllDrawers(); openDrawer('adminInboxDrawer'); loadAdminInbox();">Inbox</button>
+    <button class="btn-block btn-outline" onclick="closeAllDrawers(); openDrawer('adminInboxDrawer'); loadAdminInbox();">ইনবক্স</button>
     <button class="btn-block btn-outline" onclick="closeAllDrawers(); openDrawer('analyticsDrawer'); loadAdminAnalytics();">📊 Analytics</button>
     <button class="btn-block btn-outline" onclick="openDrawer('settingsDrawer')">স্টোর সেটিংস</button>
     <button class="btn-block btn-outline" id="logoutBtn" style="color: #C0392B; border-color: #C0392B;">লগআউট</button>
@@ -291,7 +286,7 @@ if (location.hostname.endsWith('github.io')) {
   <div class="drawer-head"><h2>স্টোর সেটিংস</h2><button class="drawer-close" onclick="closeAllDrawers()">&times;</button></div>
   <div class="drawer-body">
     <label style="display:block; border: 1.5px dashed var(--accent); border-radius: 14px; padding: 20px; text-align: center; margin-bottom: 16px; cursor: pointer; background: var(--sand);">
-      <img id="logoPreview" style="display:none; max-height: 80px; margin: 0 auto 10px; border-radius:8px;">
+      <img id="logoPreview" style="display:none; max-height: 80px; margin: 0 auto 10px; border-radius:8px;" alt="">
       <span style="font-size: 0.85rem; color: var(--accent-dark); font-weight:600;">লোগো পরিবর্তন করতে চাপুন</span>
       <input type="file" accept="image/*" id="logoInput" style="display:none;">
     </label>
@@ -299,13 +294,14 @@ if (location.hostname.endsWith('github.io')) {
     <div class="field"><label>দোকানের ঠিকানা</label><textarea id="setStoreAddress" rows="2" placeholder="দোকানের সম্পূর্ণ ঠিকানা"></textarea></div>
     <div class="field"><label>কন্টাক্ট নাম্বার</label><input type="tel" id="setContactNumber" placeholder="01XXXXXXXXX"></div>
     <div class="field"><label>ওয়েবসাইট লিংক</label><input type="url" id="setWebsiteUrl" placeholder="https://..."></div>
-    <div class="field"><label>হোয়াটসঅ্যাপ নম্বর</label><input type="tel" id="setWaNum" placeholder="e.g. 8801XXXXXXXXX"></div>
+    <div class="field"><label>হোয়াটসঅ্যাপ নম্বর</label><input type="tel" id="setWaNum" placeholder="8801XXXXXXXXX"></div>
 
     <hr style="border:none; border-top:1px solid var(--line); margin:18px 0;">
     <p style="font-weight:700; margin-bottom:12px;">হিরো ব্যানার (একাধিক ছবি, স্লাইডশো)</p>
     <div id="heroImagesList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;"></div>
     <label style="display:block; border: 1.5px dashed var(--accent); border-radius: 14px; padding: 14px; text-align: center; margin-bottom: 16px; cursor: pointer; background: var(--sand);">
-      <span style="font-size: 0.85rem; color: var(--accent-dark); font-weight:600;">+ নতুন হিরো ছবি যোগ করুন</span><small style="display:block;margin-top:6px;color:var(--ink-soft);font-size:0.72rem;">JPG / PNG / WEBP / GIF · সর্বোচ্চ ৫ MB · Cloudinary</small>
+      <span style="font-size: 0.85rem; color: var(--accent-dark); font-weight:600;">+ নতুন হিরো ছবি যোগ করুন</span>
+      <small style="display:block;margin-top:6px;color:var(--ink-soft);font-size:0.72rem;">JPG / PNG / WEBP / GIF · সর্বোচ্চ ৫ MB · Cloudinary</small>
       <input type="file" accept="image/*" id="heroInput" style="display:none;">
     </label>
 
@@ -327,7 +323,7 @@ if (location.hostname.endsWith('github.io')) {
     <div class="field"><label>bKash নম্বর (Send Money)</label><input type="tel" id="setBkashNumber" placeholder="01XXXXXXXXX"></div>
     <div class="field"><label>আপনার নিজ জেলা</label><select id="setOwnerDistrict"></select></div>
     <div class="field"><label>নিজ জেলায় ডেলিভারি চার্জ (৳)</label><input type="number" id="setDeliveryInside"></div>
-    <div class="field"><label>জেলার বাহিরে ডেলিভারি চার্জ (৳)</label><input type="number" id="setDeliveryOutside"></div>
+    <div class="field"><label>জেলার বাইরে ডেলিভারি চার্জ (৳)</label><input type="number" id="setDeliveryOutside"></div>
     <div class="field"><label>ডেলিভারি সময়</label><input type="text" id="setDeliveryTime" placeholder="যেমন: ২-৩ কার্যদিবস"></div>
     <div class="field"><label>শর্তাবলী (Terms & Conditions)</label><textarea id="setTerms" rows="5"></textarea></div>
 
@@ -360,12 +356,12 @@ if (location.hostname.endsWith('github.io')) {
   </div>
 </div>
 
-<!-- AUTH POPUP (গ্লাস) -->
+<!-- AUTH POPUP -->
 <div class="modal-overlay" id="authModalOverlay">
   <div class="glass-card" style="position:relative;">
-    <button class="modal-close-x" onclick="closeAuthModal()">&times;</button>
+    <button class="modal-close-x" onclick="closeAuthModal()" aria-label="বন্ধ">&times;</button>
     <h2>লগইন / একাউন্ট তৈরি করুন</h2>
-    <p style="font-size:0.82rem; color:var(--ink-soft); margin-bottom:14px;">ফোন নম্বর দিয়ে লগইন করুন — নতুন হলে একাউন্ট অটো তৈরি হবে。</p>
+    <p style="font-size:0.82rem; color:var(--ink-soft); margin-bottom:14px;">ফোন নম্বর দিয়ে লগইন করুন — নতুন হলে একাউন্ট অটো তৈরি হবে।</p>
     <div class="field"><input type="tel" id="modalAuthPhone" placeholder="মোবাইল নম্বর (01XXXXXXXXX)"></div>
     <div class="field"><input type="password" id="modalAuthPassword" placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)"></div>
     <p id="modalAuthError" style="color:#C0392B; display:none; font-size:0.8rem; margin-bottom:10px;"></p>
@@ -373,28 +369,10 @@ if (location.hostname.endsWith('github.io')) {
   </div>
 </div>
 
-<!-- WELCOME POPUP (গ্লাস) -->
-<div class="modal-overlay" id="welcomeModalOverlay">
-  <div class="glass-card" style="text-align: center;">
-    <button class="modal-close-x" onclick="document.getElementById('welcomeModalOverlay').classList.remove('open')">&times;</button>
-    <h2 style="font-size: 1.6rem; color: var(--accent-dark); margin-bottom: 12px; font-weight: 700;">আসসালামু আলাইকুম!</h2>
-    <p style="font-size: 1rem; color: var(--ink); margin-bottom: 22px;">স্বাগতম! 👋
-
-এখানে প্রদর্শিত পণ্যগুলো শুধুমাত্র ওয়েবসাইটের ডিজাইন ও ফিচার দেখানোর জন্য রাখা হয়েছে।
-
-এগুলো বর্তমানে বিক্রয়ের জন্য নয়। তাই অনুগ্রহ করে অর্ডার না করে ওয়েবসাইটটি ঘুরে দেখুন।
-
-আপনার প্রতিষ্ঠান বা ব্যবসার জন্য এমন ওয়েবসাইট স্বল্প খরচে তৈরি করতে চাইলে WhatsApp এ মেসেজ করুন:
-📱 01786689656</p>
-    <button class="btn-block" onclick="document.getElementById('welcomeModalOverlay').classList.remove('open')">ধন্যবাদ</button>
-  </div>
-</div>
-
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" defer></script>
 <script src="firebase-config.js" defer></script>
-
 <script src="app.js" defer></script>
 
 </body>
